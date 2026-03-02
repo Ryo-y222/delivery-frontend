@@ -1,0 +1,12 @@
+node_modules
+
+# ビルド成果物
+dist
+
+# 環境変数
+.env.local
+.env
+
+# OS生成ファイル
+.DS_Store
+Thumbs.db

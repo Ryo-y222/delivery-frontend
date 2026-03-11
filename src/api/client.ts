@@ -1,60 +1,51 @@
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080'
 
-/**
- * fetch をラップした API クライアント
- * - ベースURLの自動付与
- * - JSON の自動パース
- * - エラーハンドリング
- */
-const apiClient = {
-  async get(path) {
-    const response = await fetch(`${API_URL}${path}`)
+// interface ApiError {
+//   message: string;
+//   status: number;
+// }
 
+const apiClient = {
+  async get<T>(path: string): Promise<T> {
+    const response = await fetch(`${API_URL}${path}`)
     if (!response.ok) {
       throw new Error(`HTTP Error: ${response.status} ${response.statusText}`)
     }
-
-    return response.json()
+    return response.json() as Promise<T>
   },
 
-  async post(path, body) {
+  async post<T>(path: string, body: unknown): Promise<T> {
     const response = await fetch(`${API_URL}${path}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
     })
-
     if (!response.ok) {
       throw new Error(`HTTP Error: ${response.status} ${response.statusText}`)
     }
-
-    return response.json()
+    return response.json() as Promise<T>
   },
 
-  async put(path, body) {
+  async put<T>(path: string, body: unknown): Promise<T> {
     const response = await fetch(`${API_URL}${path}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
     })
-
     if (!response.ok) {
       throw new Error(`HTTP Error: ${response.status} ${response.statusText}`)
     }
-
-    return response.json()
+    return response.json() as Promise<T>
   },
 
-  async delete(path) {
+  async delete<T>(path: string): Promise<T> {
     const response = await fetch(`${API_URL}${path}`, {
       method: 'DELETE',
     })
-
     if (!response.ok) {
       throw new Error(`HTTP Error: ${response.status} ${response.statusText}`)
     }
-
-    return response.json()
+    return response.json() as Promise<T>
   },
 }
 

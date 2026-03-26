@@ -7,7 +7,9 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080'
 
 const apiClient = {
   async get<T>(path: string): Promise<T> {
-    const response = await fetch(`${API_URL}${path}`)
+    const response = await fetch(`${API_URL}${path}`,{
+      credentials: 'include',
+    })
     if (!response.ok) {
       throw new Error(`HTTP Error: ${response.status} ${response.statusText}`)
     }
@@ -19,6 +21,7 @@ const apiClient = {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
+      credentials: 'include',
     })
     if (!response.ok) {
       throw new Error(`HTTP Error: ${response.status} ${response.statusText}`)
@@ -31,6 +34,7 @@ const apiClient = {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
+      credentials: 'include',
     })
     if (!response.ok) {
       throw new Error(`HTTP Error: ${response.status} ${response.statusText}`)
@@ -41,6 +45,7 @@ const apiClient = {
   async delete<T>(path: string): Promise<T> {
     const response = await fetch(`${API_URL}${path}`, {
       method: 'DELETE',
+      credentials: 'include',
     })
     if (!response.ok) {
       throw new Error(`HTTP Error: ${response.status} ${response.statusText}`)

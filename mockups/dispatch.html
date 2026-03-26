@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DeliveryMatch - 配車計画</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --primary: #2563eb; --primary-hover: #1d4ed8; --primary-light: #dbeafe;
+      --bg: #f1f5f9; --card: #ffffff; --text: #0f172a; --text-muted: #64748b;
+      --border: #e2e8f0; --success: #10b981; --warning: #f59e0b; --error: #ef4444;
+      --radius: 12px; --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 2px 8px rgba(0,0,0,0.04);
+    }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Hiragino Kaku Gothic ProN', sans-serif; background: var(--bg); color: var(--text); }
+
+    /* Layout */
+    .app { display: flex; min-height: 100vh; }
+    .sidebar { width: 260px; background: #0f172a; color: white; padding: 0; flex-shrink: 0; }
+    .sidebar-logo { padding: 20px 24px; font-size: 20px; font-weight: 800; border-bottom: 1px solid rgba(255,255,255,0.08); }
+    .sidebar-logo span { color: #60a5fa; }
+    .sidebar-nav { padding: 16px 12px; display: flex; flex-direction: column; gap: 2px; }
+    .nav-section { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: #475569; padding: 16px 12px 8px; }
+    .nav-item { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 8px; color: #94a3b8; text-decoration: none; font-size: 14px; font-weight: 500; transition: all 0.15s; cursor: pointer; }
+    .nav-item:hover { background: rgba(255,255,255,0.06); color: white; }
+    .nav-item.active { background: var(--primary); color: white; }
+    .nav-item .icon { font-size: 18px; width: 24px; text-align: center; }
+
+    .content { flex: 1; }
+    .header { height: 64px; background: white; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 28px; }
+    .header h2 { font-size: 18px; font-weight: 700; }
+    .main { padding: 28px; }
+
+    .btn { padding: 10px 18px; border-radius: 8px; font-size: 14px; font-weight: 600; border: none; cursor: pointer; font-family: inherit; transition: all 0.15s; }
+    .btn-primary { background: var(--primary); color: white; }
+    .btn-primary:hover { background: var(--primary-hover); }
+    .btn-outline { background: white; color: var(--text); border: 1.5px solid var(--border); }
+    .btn-outline:hover { border-color: var(--primary); color: var(--primary); }
+
+    /* Filters */
+    .filters { display: flex; gap: 12px; margin-bottom: 24px; align-items: center; flex-wrap: wrap; }
+    .filter-input { padding: 10px 14px; border: 1.5px solid var(--border); border-radius: 8px; font-size: 14px; font-family: inherit; background: white; }
+    .filter-input:focus { outline: none; border-color: var(--primary); }
+    .filter-select { padding: 10px 14px; border: 1.5px solid var(--border); border-radius: 8px; font-size: 14px; font-family: inherit; background: white; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%2364748b' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 32px; }
+
+    /* Dispatch Cards */
+    .dispatch-grid { display: flex; flex-direction: column; gap: 16px; }
+
+    .dispatch-card { background: white; border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; }
+
+    .dispatch-card-header { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; border-bottom: 1px solid var(--border); }
+    .dispatch-card-header h3 { font-size: 16px; font-weight: 700; display: flex; align-items: center; gap: 10px; }
+    .dispatch-date { font-size: 13px; color: var(--text-muted); }
+    .dispatch-truck { font-size: 13px; color: var(--primary); font-weight: 600; background: var(--primary-light); padding: 4px 10px; border-radius: 6px; }
+
+    .trip-legs { padding: 0; }
+
+    .trip-leg {
+      display: grid;
+      grid-template-columns: 60px 1fr 120px 100px 120px 100px;
+      align-items: center;
+      padding: 14px 20px;
+      border-bottom: 1px solid var(--border);
+      transition: background 0.15s;
+      cursor: pointer;
+    }
+
+    .trip-leg:hover { background: #f8fafc; }
+    .trip-leg:last-child { border-bottom: none; }
+
+    .leg-number {
+      font-size: 12px;
+      font-weight: 700;
+      color: white;
+      background: var(--primary);
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .leg-number.empty { background: #94a3b8; }
+
+    .leg-route { display: flex; flex-direction: column; gap: 2px; }
+    .leg-route-main { font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+    .leg-route-main .arrow { color: var(--text-muted); font-size: 12px; }
+    .leg-route-sub { font-size: 12px; color: var(--text-muted); }
+
+    .leg-cargo { font-size: 13px; }
+    .leg-weight { font-size: 13px; color: var(--text-muted); }
+
+    .cargo-status {
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      display: inline-block;
+    }
+    .cargo-status.loaded { background: #dbeafe; color: #1e40af; }
+    .cargo-status.empty { background: #f1f5f9; color: #475569; }
+    .cargo-status.delivering { background: #fef3c7; color: #92400e; }
+    .cargo-status.delivered { background: #d1fae5; color: #065f46; }
+
+    .leg-actions { display: flex; gap: 6px; }
+    .leg-action-btn { padding: 6px 10px; border: 1px solid var(--border); border-radius: 6px; background: white; font-size: 12px; cursor: pointer; transition: all 0.15s; }
+    .leg-action-btn:hover { border-color: var(--primary); color: var(--primary); }
+
+    /* Timeline Visual */
+    .timeline-container { margin-bottom: 28px; }
+    .timeline-card { background: white; border-radius: var(--radius); box-shadow: var(--shadow); padding: 24px; }
+    .timeline-card h3 { font-size: 15px; font-weight: 700; margin-bottom: 20px; }
+
+    .timeline {
+      display: flex;
+      align-items: center;
+      position: relative;
+      padding: 20px 0;
+    }
+
+    .timeline-line {
+      position: absolute;
+      top: 50%;
+      left: 40px;
+      right: 40px;
+      height: 3px;
+      background: var(--border);
+      transform: translateY(-50%);
+    }
+
+    .timeline-progress {
+      position: absolute;
+      top: 50%;
+      left: 40px;
+      height: 3px;
+      background: var(--primary);
+      transform: translateY(-50%);
+      transition: width 0.5s;
+    }
+
+    .timeline-stop {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      flex: 1;
+    }
+
+    .timeline-dot {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: white;
+      border: 3px solid var(--border);
+      margin-bottom: 8px;
+    }
+
+    .timeline-dot.active { border-color: var(--primary); background: var(--primary); }
+    .timeline-dot.completed { border-color: var(--success); background: var(--success); }
+
+    .timeline-label { font-size: 12px; font-weight: 600; text-align: center; }
+    .timeline-time { font-size: 11px; color: var(--text-muted); text-align: center; }
+
+    /* Modal */
+    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 200; align-items: center; justify-content: center; }
+    .modal-overlay.show { display: flex; }
+    .modal { background: white; border-radius: 16px; width: 560px; max-width: 90vw; max-height: 80vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.2); }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; padding: 20px 24px; border-bottom: 1px solid var(--border); }
+    .modal-header h3 { font-size: 18px; font-weight: 700; }
+    .modal-close { width: 32px; height: 32px; border: none; background: #f1f5f9; border-radius: 8px; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+    .modal-body { padding: 24px; }
+    .modal-footer { display: flex; gap: 10px; justify-content: flex-end; padding: 16px 24px; border-top: 1px solid var(--border); }
+
+    .form-group { margin-bottom: 16px; }
+    .form-label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; }
+    .form-input-full { width: 100%; padding: 10px 14px; border: 1.5px solid var(--border); border-radius: 8px; font-size: 14px; font-family: inherit; }
+    .form-input-full:focus { outline: none; border-color: var(--primary); }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <!-- SIDEBAR -->
+    <nav class="sidebar">
+      <div class="sidebar-logo">Delivery<span>Match</span></div>
+      <div class="sidebar-nav">
+        <div class="nav-section">メイン</div>
+        <a class="nav-item" href="dashboard.html"><span class="icon">📊</span> ダッシュボード</a>
+        <a class="nav-item" href="matching.html"><span class="icon">🔗</span> マッチング</a>
+        <a class="nav-item active" href="#"><span class="icon">🚚</span> 配車計画</a>
+        <a class="nav-item" href="chat.html"><span class="icon">💬</span> チャット</a>
+        <div class="nav-section">管理</div>
+        <a class="nav-item" href="#"><span class="icon">🏢</span> 会社情報</a>
+        <a class="nav-item" href="#"><span class="icon">👤</span> ドライバー</a>
+        <a class="nav-item" href="#"><span class="icon">🚛</span> 車両管理</a>
+        <div class="nav-section">設定</div>
+        <a class="nav-item" href="payment.html"><span class="icon">💳</span> 決済・プラン</a>
+        <a class="nav-item" href="review.html"><span class="icon">⭐</span> レビュー</a>
+      </div>
+    </nav>
+
+    <div class="content">
+      <header class="header">
+        <h2>🚚 配車計画・トリップレグ</h2>
+        <button class="btn btn-primary" onclick="openModal()">+ 新規配車計画</button>
+      </header>
+
+      <main class="main">
+        <!-- Timeline -->
+        <div class="timeline-container">
+          <div class="timeline-card">
+            <h3>本日の配車タイムライン（品川 100 あ 12-34）</h3>
+            <div class="timeline">
+              <div class="timeline-line"></div>
+              <div class="timeline-progress" style="width: 45%"></div>
+              <div class="timeline-stop">
+                <div class="timeline-dot completed"></div>
+                <div class="timeline-label">東京倉庫</div>
+                <div class="timeline-time">06:00 出発済</div>
+              </div>
+              <div class="timeline-stop">
+                <div class="timeline-dot completed"></div>
+                <div class="timeline-label">横浜港</div>
+                <div class="timeline-time">07:30 荷降完了</div>
+              </div>
+              <div class="timeline-stop">
+                <div class="timeline-dot active"></div>
+                <div class="timeline-label">名古屋IC</div>
+                <div class="timeline-time">12:00 予定</div>
+              </div>
+              <div class="timeline-stop">
+                <div class="timeline-dot"></div>
+                <div class="timeline-label">大阪倉庫</div>
+                <div class="timeline-time">15:00 予定</div>
+              </div>
+              <div class="timeline-stop">
+                <div class="timeline-dot"></div>
+                <div class="timeline-label">神戸港</div>
+                <div class="timeline-time">17:00 予定</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="filters">
+          <input type="date" class="filter-input" value="2026-03-21">
+          <select class="filter-select">
+            <option>すべての車両</option>
+            <option>品川 100 あ 12-34</option>
+            <option>大阪 200 い 56-78</option>
+            <option>名古屋 300 う 90-12</option>
+          </select>
+          <select class="filter-select">
+            <option>すべてのステータス</option>
+            <option>積荷あり</option>
+            <option>空車</option>
+            <option>配送中</option>
+          </select>
+          <div style="flex:1"></div>
+          <span style="font-size: 13px; color: var(--text-muted);">3件の配車計画</span>
+        </div>
+
+        <!-- Dispatch Cards -->
+        <div class="dispatch-grid" id="dispatchGrid"></div>
+      </main>
+    </div>
+  </div>
+
+  <!-- New Dispatch Modal -->
+  <div class="modal-overlay" id="modal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>新規配車計画</h3>
+        <button class="modal-close" onclick="closeModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label">車両</label>
+          <select class="form-input-full">
+            <option>品川 100 あ 12-34 (10t 冷蔵)</option>
+            <option>大阪 200 い 56-78 (4t 平ボディ)</option>
+            <option>名古屋 300 う 90-12 (10t ウイング)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">ドライバー</label>
+          <select class="form-input-full">
+            <option>山田 一郎</option>
+            <option>佐藤 二郎</option>
+            <option>高橋 三郎</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">日付</label>
+            <input type="date" class="form-input-full" value="2026-03-22">
+          </div>
+          <div class="form-group">
+            <label class="form-label">出発時刻</label>
+            <input type="time" class="form-input-full" value="06:00">
+          </div>
+        </div>
+        <hr style="border: none; border-top: 1px solid var(--border); margin: 16px 0;">
+        <h4 style="font-size: 14px; font-weight: 700; margin-bottom: 12px;">トリップレグ #1</h4>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">出発地</label>
+            <input type="text" class="form-input-full" placeholder="例: 東京倉庫">
+          </div>
+          <div class="form-group">
+            <label class="form-label">到着地</label>
+            <input type="text" class="form-input-full" placeholder="例: 横浜港">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">荷物</label>
+            <input type="text" class="form-input-full" placeholder="例: 冷凍食品">
+          </div>
+          <div class="form-group">
+            <label class="form-label">重量</label>
+            <input type="text" class="form-input-full" placeholder="例: 5.2t">
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" onclick="closeModal()">キャンセル</button>
+        <button class="btn btn-primary" onclick="closeModal()">作成する</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ===== Mock Data =====
+    const dispatches = [
+      {
+        id: 'DP-001',
+        date: '2026-03-21',
+        truck: '品川 100 あ 12-34',
+        truckType: '10t 冷蔵',
+        driver: '山田 一郎',
+        legs: [
+          { num: 1, from: '東京倉庫', to: '横浜港', cargo: '冷凍食品', weight: '5.2t', status: 'delivered', statusLabel: '荷降完了', eta: '07:30' },
+          { num: 2, from: '横浜港', to: '名古屋IC', cargo: '―', weight: '―', status: 'empty', statusLabel: '空車回送', eta: '12:00' },
+          { num: 3, from: '名古屋IC', to: '大阪倉庫', cargo: '電子部品', weight: '3.8t', status: 'delivering', statusLabel: '配送中', eta: '15:00' },
+          { num: 4, from: '大阪倉庫', to: '神戸港', cargo: '精密機器', weight: '4.1t', status: 'loaded', statusLabel: '積荷あり', eta: '17:00' },
+        ]
+      },
+      {
+        id: 'DP-002',
+        date: '2026-03-21',
+        truck: '大阪 200 い 56-78',
+        truckType: '4t 平ボディ',
+        driver: '佐藤 二郎',
+        legs: [
+          { num: 1, from: '大阪中央市場', to: '京都配送センター', cargo: '青果物', weight: '2.5t', status: 'delivered', statusLabel: '荷降完了', eta: '08:00' },
+          { num: 2, from: '京都配送センター', to: '滋賀工場', cargo: '包装資材', weight: '1.8t', status: 'delivering', statusLabel: '配送中', eta: '10:30' },
+          { num: 3, from: '滋賀工場', to: '大阪中央市場', cargo: '―', weight: '―', status: 'empty', statusLabel: '空車回送', eta: '14:00' },
+        ]
+      },
+      {
+        id: 'DP-003',
+        date: '2026-03-21',
+        truck: '名古屋 300 う 90-12',
+        truckType: '10t ウイング',
+        driver: '高橋 三郎',
+        legs: [
+          { num: 1, from: '名古屋港', to: '豊田工場', cargo: '自動車部品', weight: '8.5t', status: 'loaded', statusLabel: '積荷あり', eta: '09:00' },
+          { num: 2, from: '豊田工場', to: '浜松倉庫', cargo: '完成品', weight: '6.2t', status: 'loaded', statusLabel: '積荷あり', eta: '12:00' },
+        ]
+      },
+    ];
+
+    // ===== Render =====
+    function renderDispatches() {
+      const grid = document.getElementById('dispatchGrid');
+      grid.innerHTML = dispatches.map(d => `
+        <div class="dispatch-card">
+          <div class="dispatch-card-header">
+            <h3>
+              <span>${d.id}</span>
+              <span class="dispatch-truck">🚛 ${d.truck} (${d.truckType})</span>
+            </h3>
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <span class="dispatch-date">👤 ${d.driver}</span>
+              <span class="dispatch-date">📅 ${d.date}</span>
+            </div>
+          </div>
+          <div class="trip-legs">
+            ${d.legs.map(leg => `
+              <div class="trip-leg">
+                <div><span class="leg-number ${leg.status === 'empty' ? 'empty' : ''}">${leg.num}</span></div>
+                <div class="leg-route">
+                  <div class="leg-route-main">
+                    <span>${leg.from}</span>
+                    <span class="arrow">→</span>
+                    <span>${leg.to}</span>
+                  </div>
+                  <div class="leg-route-sub">到着予定: ${leg.eta}</div>
+                </div>
+                <div class="leg-cargo">${leg.cargo}</div>
+                <div class="leg-weight">${leg.weight}</div>
+                <div><span class="cargo-status ${leg.status}">${leg.statusLabel}</span></div>
+                <div class="leg-actions">
+                  <button class="leg-action-btn" onclick="alert('ステータス更新: Leg ${leg.num}')">更新</button>
+                  <button class="leg-action-btn" onclick="alert('詳細表示: Leg ${leg.num}')">詳細</button>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function openModal() { document.getElementById('modal').classList.add('show'); }
+    function closeModal() { document.getElementById('modal').classList.remove('show'); }
+    document.getElementById('modal').addEventListener('click', (e) => { if (e.target === e.currentTarget) closeModal(); });
+
+    renderDispatches();
+  </script>
+</body>
+</html>

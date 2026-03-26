@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DeliveryMatch - マッチング</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --primary: #2563eb; --primary-hover: #1d4ed8; --primary-light: #dbeafe;
+      --bg: #f1f5f9; --card: #ffffff; --text: #0f172a; --text-muted: #64748b;
+      --border: #e2e8f0; --success: #10b981; --success-bg: #ecfdf5;
+      --warning: #f59e0b; --warning-bg: #fffbeb; --error: #ef4444; --error-bg: #fef2f2;
+      --radius: 12px; --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 2px 8px rgba(0,0,0,0.04);
+    }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Hiragino Kaku Gothic ProN', sans-serif; background: var(--bg); color: var(--text); }
+
+    .app { display: flex; min-height: 100vh; }
+    .sidebar { width: 260px; background: #0f172a; color: white; flex-shrink: 0; }
+    .sidebar-logo { padding: 20px 24px; font-size: 20px; font-weight: 800; border-bottom: 1px solid rgba(255,255,255,0.08); }
+    .sidebar-logo span { color: #60a5fa; }
+    .sidebar-nav { padding: 16px 12px; display: flex; flex-direction: column; gap: 2px; }
+    .nav-section { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: #475569; padding: 16px 12px 8px; }
+    .nav-item { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 8px; color: #94a3b8; text-decoration: none; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.15s; }
+    .nav-item:hover { background: rgba(255,255,255,0.06); color: white; }
+    .nav-item.active { background: var(--primary); color: white; }
+    .nav-item .icon { font-size: 18px; width: 24px; text-align: center; }
+    .nav-badge { margin-left: auto; background: var(--error); color: white; font-size: 11px; font-weight: 700; padding: 2px 7px; border-radius: 10px; }
+
+    .content { flex: 1; }
+    .header { height: 64px; background: white; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 28px; }
+    .header h2 { font-size: 18px; font-weight: 700; }
+    .main { padding: 28px; }
+
+    .btn { padding: 10px 18px; border-radius: 8px; font-size: 14px; font-weight: 600; border: none; cursor: pointer; font-family: inherit; transition: all 0.15s; display: inline-flex; align-items: center; gap: 6px; }
+    .btn-primary { background: var(--primary); color: white; }
+    .btn-primary:hover { background: var(--primary-hover); }
+    .btn-success { background: var(--success); color: white; }
+    .btn-success:hover { background: #059669; }
+    .btn-danger { background: var(--error); color: white; }
+    .btn-danger:hover { background: #dc2626; }
+    .btn-outline { background: white; color: var(--text); border: 1.5px solid var(--border); }
+    .btn-sm { padding: 6px 12px; font-size: 13px; }
+
+    /* Status Flow */
+    .status-flow { display: flex; align-items: center; gap: 0; margin-bottom: 28px; background: white; border-radius: var(--radius); box-shadow: var(--shadow); padding: 16px 20px; }
+    .flow-step { flex: 1; display: flex; align-items: center; gap: 10px; padding: 8px 0; }
+    .flow-step-dot { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; background: #f1f5f9; color: var(--text-muted); flex-shrink: 0; }
+    .flow-step.active .flow-step-dot { background: var(--primary); color: white; }
+    .flow-step.done .flow-step-dot { background: var(--success); color: white; }
+    .flow-step-info { }
+    .flow-step-label { font-size: 13px; font-weight: 600; }
+    .flow-step-count { font-size: 11px; color: var(--text-muted); }
+    .flow-arrow { color: var(--border); font-size: 18px; margin: 0 4px; }
+
+    /* Tabs */
+    .tabs { display: flex; gap: 4px; margin-bottom: 20px; background: #f1f5f9; border-radius: 10px; padding: 4px; width: fit-content; }
+    .tab { padding: 8px 18px; border: none; background: transparent; font-size: 13px; font-weight: 600; color: var(--text-muted); border-radius: 7px; cursor: pointer; transition: all 0.2s; font-family: inherit; }
+    .tab.active { background: white; color: var(--text); box-shadow: 0 1px 2px rgba(0,0,0,0.08); }
+
+    /* Match Cards */
+    .match-list { display: flex; flex-direction: column; gap: 12px; }
+
+    .match-card { background: white; border-radius: var(--radius); box-shadow: var(--shadow); padding: 20px; display: grid; grid-template-columns: 1fr 200px 140px 180px; align-items: center; gap: 16px; transition: all 0.15s; border: 2px solid transparent; }
+    .match-card:hover { border-color: var(--primary-light); }
+
+    .match-info h4 { font-size: 15px; font-weight: 700; margin-bottom: 6px; }
+    .match-route-display { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+    .match-city { background: #f1f5f9; padding: 4px 10px; border-radius: 6px; font-size: 13px; font-weight: 600; }
+    .match-arrow { color: var(--primary); font-weight: 700; }
+    .match-details { display: flex; gap: 16px; flex-wrap: wrap; }
+    .match-detail { font-size: 12px; color: var(--text-muted); }
+    .match-detail strong { color: var(--text); font-weight: 600; }
+
+    .match-company { }
+    .match-company-name { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+    .match-company-rating { display: flex; align-items: center; gap: 4px; font-size: 13px; }
+    .match-company-rating .stars { color: #f59e0b; }
+    .match-company-info { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+
+    .match-status { text-align: center; }
+    .status-badge { padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 600; display: inline-block; }
+    .status-badge.pending { background: var(--warning-bg); color: #92400e; }
+    .status-badge.approved { background: var(--success-bg); color: #065f46; }
+    .status-badge.payment_pending { background: #dbeafe; color: #1e40af; }
+    .status-badge.completed { background: #d1fae5; color: #166534; }
+    .status-badge.rejected { background: var(--error-bg); color: #991b1b; }
+
+    .match-actions { display: flex; flex-direction: column; gap: 6px; }
+
+    /* Info Disclosure */
+    .disclosure-level { display: flex; gap: 3px; margin-top: 6px; }
+    .disclosure-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border); }
+    .disclosure-dot.filled { background: var(--primary); }
+
+    .disclosure-label { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+    /* Empty state */
+    .empty-state { text-align: center; padding: 60px 20px; color: var(--text-muted); }
+    .empty-state .icon { font-size: 48px; margin-bottom: 16px; }
+    .empty-state h3 { font-size: 18px; color: var(--text); margin-bottom: 8px; }
+
+    /* Toast */
+    .toast { position: fixed; top: 24px; right: 24px; padding: 14px 20px; border-radius: 10px; font-size: 14px; font-weight: 500; z-index: 100; transform: translateX(120%); transition: transform 0.3s; box-shadow: 0 4px 24px rgba(0,0,0,0.1); display: flex; align-items: center; gap: 8px; }
+    .toast.show { transform: translateX(0); }
+    .toast.success { background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; }
+    .toast.error { background: var(--error-bg); color: #991b1b; border: 1px solid #fecaca; }
+    .toast.info { background: #eff6ff; color: #1e40af; border: 1px solid #bfdbfe; }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <nav class="sidebar">
+      <div class="sidebar-logo">Delivery<span>Match</span></div>
+      <div class="sidebar-nav">
+        <div class="nav-section">メイン</div>
+        <a class="nav-item" href="dashboard.html"><span class="icon">📊</span> ダッシュボード</a>
+        <a class="nav-item active" href="#"><span class="icon">🔗</span> マッチング <span class="nav-badge">3</span></a>
+        <a class="nav-item" href="dispatch.html"><span class="icon">🚚</span> 配車計画</a>
+        <a class="nav-item" href="chat.html"><span class="icon">💬</span> チャット</a>
+        <div class="nav-section">管理</div>
+        <a class="nav-item" href="#"><span class="icon">🏢</span> 会社情報</a>
+        <a class="nav-item" href="#"><span class="icon">👤</span> ドライバー</a>
+        <a class="nav-item" href="#"><span class="icon">🚛</span> 車両管理</a>
+        <div class="nav-section">設定</div>
+        <a class="nav-item" href="payment.html"><span class="icon">💳</span> 決済・プラン</a>
+        <a class="nav-item" href="review.html"><span class="icon">⭐</span> レビュー</a>
+      </div>
+    </nav>
+
+    <div class="content">
+      <header class="header">
+        <h2>🔗 マッチング管理</h2>
+        <button class="btn btn-primary">+ 新規マッチングリクエスト</button>
+      </header>
+
+      <main class="main">
+        <!-- Status Flow -->
+        <div class="status-flow">
+          <div class="flow-step active">
+            <div class="flow-step-dot">1</div>
+            <div class="flow-step-info">
+              <div class="flow-step-label">申請中</div>
+              <div class="flow-step-count">3件</div>
+            </div>
+          </div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step">
+            <div class="flow-step-dot">2</div>
+            <div class="flow-step-info">
+              <div class="flow-step-label">承認済み</div>
+              <div class="flow-step-count">2件</div>
+            </div>
+          </div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step">
+            <div class="flow-step-dot">3</div>
+            <div class="flow-step-info">
+              <div class="flow-step-label">支払い待ち</div>
+              <div class="flow-step-count">1件</div>
+            </div>
+          </div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step done">
+            <div class="flow-step-dot">✓</div>
+            <div class="flow-step-info">
+              <div class="flow-step-label">完了</div>
+              <div class="flow-step-count">12件</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="tabs">
+          <button class="tab active" data-status="all">すべて (18)</button>
+          <button class="tab" data-status="pending">申請中 (3)</button>
+          <button class="tab" data-status="approved">承認済み (2)</button>
+          <button class="tab" data-status="payment_pending">支払待ち (1)</button>
+          <button class="tab" data-status="completed">完了 (12)</button>
+        </div>
+
+        <!-- Match List -->
+        <div class="match-list" id="matchList"></div>
+      </main>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    // ===== Mock Data =====
+    const matches = [
+      {
+        id: 'M-001', from: '東京', to: '大阪', date: '2026-03-21', amount: '¥85,000',
+        cargo: '冷凍食品', weight: '5.2t', truckType: '10t 冷蔵',
+        company: '鈴木運送株式会社', rating: 4.8, reviews: 45, disclosure: 3,
+        status: 'approved', statusLabel: '承認済み'
+      },
+      {
+        id: 'M-002', from: '名古屋', to: '福岡', date: '2026-03-22', amount: '¥120,000',
+        cargo: '電子部品', weight: '3.8t', truckType: '10t ウイング',
+        company: '***運送（情報制限中）', rating: null, reviews: null, disclosure: 1,
+        status: 'pending', statusLabel: '申請中'
+      },
+      {
+        id: 'M-003', from: '横浜', to: '仙台', date: '2026-03-23', amount: '¥65,000',
+        cargo: '日用品', weight: '2.1t', truckType: '4t 平ボディ',
+        company: '***（情報制限中）', rating: null, reviews: null, disclosure: 0,
+        status: 'pending', statusLabel: '申請中'
+      },
+      {
+        id: 'M-004', from: '大阪', to: '広島', date: '2026-03-20', amount: '¥45,000',
+        cargo: '青果物', weight: '1.5t', truckType: '4t 冷蔵',
+        company: '高橋運送株式会社', rating: 4.5, reviews: 32, disclosure: 4,
+        status: 'payment_pending', statusLabel: '支払い待ち'
+      },
+      {
+        id: 'M-005', from: '福岡', to: '熊本', date: '2026-03-19', amount: '¥28,000',
+        cargo: '建材', weight: '6.0t', truckType: '10t 平ボディ',
+        company: '九州物流株式会社', rating: 4.2, reviews: 18, disclosure: 4,
+        status: 'completed', statusLabel: '完了'
+      },
+      {
+        id: 'M-006', from: '東京', to: '札幌', date: '2026-03-18', amount: '¥180,000',
+        cargo: '精密機器', weight: '4.0t', truckType: '10t ウイング',
+        company: '***運送（情報制限中）', rating: null, reviews: null, disclosure: 1,
+        status: 'pending', statusLabel: '申請中'
+      },
+      {
+        id: 'M-007', from: '大阪', to: '東京', date: '2026-03-17', amount: '¥95,000',
+        cargo: '衣料品', weight: '3.2t', truckType: '10t ウイング',
+        company: '関東運輸株式会社', rating: 4.6, reviews: 56, disclosure: 4,
+        status: 'completed', statusLabel: '完了'
+      },
+    ];
+
+    let currentFilter = 'all';
+
+    // ===== Render =====
+    function renderMatches() {
+      const list = document.getElementById('matchList');
+      const filtered = currentFilter === 'all' ? matches : matches.filter(m => m.status === currentFilter);
+
+      if (filtered.length === 0) {
+        list.innerHTML = `
+          <div class="empty-state">
+            <div class="icon">📭</div>
+            <h3>該当するマッチングがありません</h3>
+            <p>フィルターを変更するか、新規リクエストを作成してください。</p>
+          </div>`;
+        return;
+      }
+
+      list.innerHTML = filtered.map(m => `
+        <div class="match-card">
+          <div class="match-info">
+            <h4>${m.id}</h4>
+            <div class="match-route-display">
+              <span class="match-city">${m.from}</span>
+              <span class="match-arrow">→</span>
+              <span class="match-city">${m.to}</span>
+            </div>
+            <div class="match-details">
+              <div class="match-detail">📦 <strong>${m.cargo}</strong></div>
+              <div class="match-detail">⚖️ ${m.weight}</div>
+              <div class="match-detail">🚛 ${m.truckType}</div>
+              <div class="match-detail">📅 ${m.date}</div>
+            </div>
+          </div>
+          <div class="match-company">
+            <div class="match-company-name">${m.company}</div>
+            ${m.rating ? `
+              <div class="match-company-rating">
+                <span class="stars">${'★'.repeat(Math.floor(m.rating))}${'☆'.repeat(5 - Math.floor(m.rating))}</span>
+                <span>${m.rating} (${m.reviews}件)</span>
+              </div>
+            ` : '<div class="match-company-info">情報開示レベルが不足しています</div>'}
+            <div class="disclosure-level">
+              ${[0,1,2,3].map(i => `<div class="disclosure-dot ${i < m.disclosure ? 'filled' : ''}"></div>`).join('')}
+            </div>
+            <div class="disclosure-label">情報開示: Stage ${m.disclosure}/4</div>
+          </div>
+          <div class="match-status">
+            <span class="status-badge ${m.status}">${m.statusLabel}</span>
+            <div style="font-size: 16px; font-weight: 700; margin-top: 8px;">${m.amount}</div>
+          </div>
+          <div class="match-actions">
+            ${m.status === 'pending' ? `
+              <button class="btn btn-success btn-sm" onclick="updateStatus('${m.id}', 'approved')">✓ 承認</button>
+              <button class="btn btn-danger btn-sm" onclick="updateStatus('${m.id}', 'rejected')">✕ 却下</button>
+              <button class="btn btn-outline btn-sm" onclick="showToast('チャット画面に移動します', 'info')">💬 チャット</button>
+            ` : m.status === 'approved' ? `
+              <button class="btn btn-primary btn-sm" onclick="updateStatus('${m.id}', 'payment_pending')">💳 支払いへ</button>
+              <button class="btn btn-outline btn-sm" onclick="showToast('チャット画面に移動します', 'info')">💬 チャット</button>
+            ` : m.status === 'payment_pending' ? `
+              <button class="btn btn-success btn-sm" onclick="updateStatus('${m.id}', 'completed')">✓ 支払い完了</button>
+              <button class="btn btn-outline btn-sm" onclick="showToast('詳細を表示', 'info')">📋 詳細</button>
+            ` : `
+              <button class="btn btn-outline btn-sm" onclick="showToast('詳細を表示', 'info')">📋 詳細</button>
+              <button class="btn btn-outline btn-sm" onclick="showToast('レビュー画面に移動します', 'info')">⭐ レビュー</button>
+            `}
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // ===== Status Update =====
+    function updateStatus(id, newStatus) {
+      const match = matches.find(m => m.id === id);
+      if (!match) return;
+
+      const labels = { approved: '承認済み', rejected: '却下', payment_pending: '支払い待ち', completed: '完了' };
+      match.status = newStatus;
+      match.statusLabel = labels[newStatus];
+
+      // Update disclosure on approve
+      if (newStatus === 'approved' && match.disclosure < 3) match.disclosure = 3;
+      if (newStatus === 'completed') match.disclosure = 4;
+
+      renderMatches();
+      showToast(`${match.id}: ${labels[newStatus]}に更新しました`, 'success');
+    }
+
+    // ===== Tabs =====
+    document.querySelectorAll('.tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        currentFilter = tab.dataset.status;
+        renderMatches();
+      });
+    });
+
+    // ===== Toast =====
+    function showToast(msg, type = 'success') {
+      const toast = document.getElementById('toast');
+      toast.textContent = msg;
+      toast.className = `toast ${type} show`;
+      setTimeout(() => toast.classList.remove('show'), 3000);
+    }
+
+    renderMatches();
+  </script>
+</body>
+</html>

@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DeliveryMatch - レビュー・評価</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --primary: #2563eb; --primary-hover: #1d4ed8; --primary-light: #dbeafe;
+      --bg: #f1f5f9; --card: #ffffff; --text: #0f172a; --text-muted: #64748b;
+      --border: #e2e8f0; --success: #10b981; --warning: #f59e0b; --error: #ef4444;
+      --star: #f59e0b; --radius: 12px; --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 2px 8px rgba(0,0,0,0.04);
+    }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Hiragino Kaku Gothic ProN', sans-serif; background: var(--bg); color: var(--text); }
+
+    .app { display: flex; min-height: 100vh; }
+    .sidebar { width: 260px; background: #0f172a; color: white; flex-shrink: 0; }
+    .sidebar-logo { padding: 20px 24px; font-size: 20px; font-weight: 800; border-bottom: 1px solid rgba(255,255,255,0.08); }
+    .sidebar-logo span { color: #60a5fa; }
+    .sidebar-nav { padding: 16px 12px; display: flex; flex-direction: column; gap: 2px; }
+    .nav-section { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: #475569; padding: 16px 12px 8px; }
+    .nav-item { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 8px; color: #94a3b8; text-decoration: none; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.15s; }
+    .nav-item:hover { background: rgba(255,255,255,0.06); color: white; }
+    .nav-item.active { background: var(--primary); color: white; }
+    .nav-item .icon { font-size: 18px; width: 24px; text-align: center; }
+
+    .content { flex: 1; }
+    .header { height: 64px; background: white; border-bottom: 1px solid var(--border); display: flex; align-items: center; padding: 0 28px; }
+    .header h2 { font-size: 18px; font-weight: 700; }
+    .main { padding: 28px; max-width: 1000px; }
+
+    .btn { padding: 10px 18px; border-radius: 8px; font-size: 14px; font-weight: 600; border: none; cursor: pointer; font-family: inherit; transition: all 0.15s; }
+    .btn-primary { background: var(--primary); color: white; }
+    .btn-primary:hover { background: var(--primary-hover); }
+    .btn-outline { background: white; color: var(--text); border: 1.5px solid var(--border); }
+
+    /* Rating Summary */
+    .rating-summary { display: grid; grid-template-columns: 200px 1fr; gap: 32px; background: white; border-radius: var(--radius); box-shadow: var(--shadow); padding: 28px; margin-bottom: 28px; }
+
+    .rating-big { text-align: center; }
+    .rating-big-number { font-size: 56px; font-weight: 800; line-height: 1; }
+    .rating-big-stars { font-size: 24px; color: var(--star); margin: 8px 0; }
+    .rating-big-count { font-size: 14px; color: var(--text-muted); }
+
+    .rating-bars { display: flex; flex-direction: column; gap: 8px; justify-content: center; }
+    .rating-bar-row { display: flex; align-items: center; gap: 10px; }
+    .rating-bar-label { font-size: 13px; font-weight: 600; width: 40px; text-align: right; }
+    .rating-bar-track { flex: 1; height: 8px; background: #f1f5f9; border-radius: 4px; overflow: hidden; }
+    .rating-bar-fill { height: 100%; background: var(--star); border-radius: 4px; transition: width 0.5s; }
+    .rating-bar-count { font-size: 12px; color: var(--text-muted); width: 30px; }
+
+    /* Tabs */
+    .tabs { display: flex; gap: 4px; margin-bottom: 20px; background: #f1f5f9; border-radius: 10px; padding: 4px; width: fit-content; }
+    .tab { padding: 8px 18px; border: none; background: transparent; font-size: 13px; font-weight: 600; color: var(--text-muted); border-radius: 7px; cursor: pointer; transition: all 0.2s; font-family: inherit; }
+    .tab.active { background: white; color: var(--text); box-shadow: 0 1px 2px rgba(0,0,0,0.08); }
+
+    /* Review Cards */
+    .review-list { display: flex; flex-direction: column; gap: 12px; }
+
+    .review-card { background: white; border-radius: var(--radius); box-shadow: var(--shadow); padding: 20px; }
+
+    .review-card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
+    .review-author { display: flex; align-items: center; gap: 12px; }
+    .review-avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; }
+    .review-author-info h4 { font-size: 14px; font-weight: 600; }
+    .review-author-info p { font-size: 12px; color: var(--text-muted); }
+    .review-match-id { font-size: 12px; color: var(--primary); background: var(--primary-light); padding: 4px 8px; border-radius: 6px; font-weight: 600; }
+
+    .review-stars { color: var(--star); font-size: 16px; margin-bottom: 8px; }
+    .review-categories { display: flex; gap: 12px; margin-bottom: 10px; flex-wrap: wrap; }
+    .review-category { font-size: 12px; color: var(--text-muted); }
+    .review-category strong { color: var(--text); }
+
+    .review-text { font-size: 14px; line-height: 1.6; color: #334155; }
+    .review-date { font-size: 12px; color: var(--text-muted); margin-top: 10px; }
+
+    .review-reply { margin-top: 12px; padding: 12px 16px; background: #f8fafc; border-radius: 8px; border-left: 3px solid var(--primary); }
+    .review-reply-label { font-size: 12px; font-weight: 600; color: var(--primary); margin-bottom: 4px; }
+    .review-reply-text { font-size: 13px; line-height: 1.5; }
+
+    /* Write Review Modal */
+    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 200; align-items: center; justify-content: center; }
+    .modal-overlay.show { display: flex; }
+    .modal { background: white; border-radius: 16px; width: 520px; max-width: 90vw; box-shadow: 0 20px 60px rgba(0,0,0,0.2); }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; padding: 20px 24px; border-bottom: 1px solid var(--border); }
+    .modal-header h3 { font-size: 18px; font-weight: 700; }
+    .modal-close { width: 32px; height: 32px; border: none; background: #f1f5f9; border-radius: 8px; font-size: 16px; cursor: pointer; }
+    .modal-body { padding: 24px; }
+    .modal-footer { display: flex; gap: 10px; justify-content: flex-end; padding: 16px 24px; border-top: 1px solid var(--border); }
+
+    .star-input { display: flex; gap: 4px; margin-bottom: 16px; }
+    .star-input .star { font-size: 32px; cursor: pointer; color: var(--border); transition: color 0.15s; }
+    .star-input .star.active { color: var(--star); }
+
+    .review-form-group { margin-bottom: 16px; }
+    .review-form-label { font-size: 13px; font-weight: 600; margin-bottom: 6px; display: block; }
+    .review-form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .review-form-slider { display: flex; align-items: center; gap: 8px; }
+    .review-form-slider input[type="range"] { flex: 1; }
+    .review-form-slider .value { font-size: 14px; font-weight: 700; width: 24px; text-align: center; }
+    .review-textarea { width: 100%; padding: 12px; border: 1.5px solid var(--border); border-radius: 8px; font-size: 14px; font-family: inherit; resize: vertical; min-height: 100px; }
+    .review-textarea:focus { outline: none; border-color: var(--primary); }
+
+    /* Toast */
+    .toast { position: fixed; top: 24px; right: 24px; padding: 14px 20px; border-radius: 10px; font-size: 14px; font-weight: 500; z-index: 100; transform: translateX(120%); transition: transform 0.3s; box-shadow: 0 4px 24px rgba(0,0,0,0.1); }
+    .toast.show { transform: translateX(0); }
+    .toast.success { background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <nav class="sidebar">
+      <div class="sidebar-logo">Delivery<span>Match</span></div>
+      <div class="sidebar-nav">
+        <div class="nav-section">メイン</div>
+        <a class="nav-item" href="dashboard.html"><span class="icon">📊</span> ダッシュボード</a>
+        <a class="nav-item" href="matching.html"><span class="icon">🔗</span> マッチング</a>
+        <a class="nav-item" href="dispatch.html"><span class="icon">🚚</span> 配車計画</a>
+        <a class="nav-item" href="chat.html"><span class="icon">💬</span> チャット</a>
+        <div class="nav-section">管理</div>
+        <a class="nav-item" href="#"><span class="icon">🏢</span> 会社情報</a>
+        <a class="nav-item" href="#"><span class="icon">👤</span> ドライバー</a>
+        <a class="nav-item" href="#"><span class="icon">🚛</span> 車両管理</a>
+        <div class="nav-section">設定</div>
+        <a class="nav-item" href="payment.html"><span class="icon">💳</span> 決済・プラン</a>
+        <a class="nav-item active" href="#"><span class="icon">⭐</span> レビュー</a>
+      </div>
+    </nav>
+
+    <div class="content">
+      <header class="header">
+        <h2>⭐ レビュー・評価</h2>
+      </header>
+
+      <main class="main">
+        <!-- Rating Summary -->
+        <div class="rating-summary">
+          <div class="rating-big">
+            <div class="rating-big-number">4.7</div>
+            <div class="rating-big-stars">★★★★★</div>
+            <div class="rating-big-count">32件のレビュー</div>
+          </div>
+          <div class="rating-bars">
+            <div class="rating-bar-row">
+              <span class="rating-bar-label">5★</span>
+              <div class="rating-bar-track"><div class="rating-bar-fill" style="width: 65%"></div></div>
+              <span class="rating-bar-count">21</span>
+            </div>
+            <div class="rating-bar-row">
+              <span class="rating-bar-label">4★</span>
+              <div class="rating-bar-track"><div class="rating-bar-fill" style="width: 22%"></div></div>
+              <span class="rating-bar-count">7</span>
+            </div>
+            <div class="rating-bar-row">
+              <span class="rating-bar-label">3★</span>
+              <div class="rating-bar-track"><div class="rating-bar-fill" style="width: 9%"></div></div>
+              <span class="rating-bar-count">3</span>
+            </div>
+            <div class="rating-bar-row">
+              <span class="rating-bar-label">2★</span>
+              <div class="rating-bar-track"><div class="rating-bar-fill" style="width: 3%"></div></div>
+              <span class="rating-bar-count">1</span>
+            </div>
+            <div class="rating-bar-row">
+              <span class="rating-bar-label">1★</span>
+              <div class="rating-bar-track"><div class="rating-bar-fill" style="width: 0%"></div></div>
+              <span class="rating-bar-count">0</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tabs -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+          <div class="tabs">
+            <button class="tab active" data-filter="received">受け取ったレビュー</button>
+            <button class="tab" data-filter="sent">書いたレビュー</button>
+            <button class="tab" data-filter="pending">未レビュー</button>
+          </div>
+          <button class="btn btn-primary" onclick="openModal()">✏️ レビューを書く</button>
+        </div>
+
+        <!-- Review List -->
+        <div class="review-list" id="reviewList"></div>
+      </main>
+    </div>
+  </div>
+
+  <!-- Write Review Modal -->
+  <div class="modal-overlay" id="modal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>レビューを書く</h3>
+        <button class="modal-close" onclick="closeModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="review-form-group">
+          <label class="review-form-label">取引</label>
+          <select class="review-textarea" style="min-height: auto; padding: 10px;">
+            <option>M-005: 福岡→熊本 - 九州物流株式会社</option>
+            <option>M-001: 東京→大阪 - 鈴木運送株式会社</option>
+          </select>
+        </div>
+        <div class="review-form-group">
+          <label class="review-form-label">総合評価</label>
+          <div class="star-input" id="starInput">
+            <span class="star" data-value="1">★</span>
+            <span class="star" data-value="2">★</span>
+            <span class="star" data-value="3">★</span>
+            <span class="star" data-value="4">★</span>
+            <span class="star" data-value="5">★</span>
+          </div>
+        </div>
+        <div class="review-form-group">
+          <label class="review-form-label">カテゴリ別評価</label>
+          <div class="review-form-row">
+            <div>
+              <div class="review-form-slider">
+                <span style="font-size: 13px; width: 80px;">時間厳守</span>
+                <input type="range" min="1" max="5" value="5" id="catTime">
+                <span class="value" id="catTimeVal">5</span>
+              </div>
+            </div>
+            <div>
+              <div class="review-form-slider">
+                <span style="font-size: 13px; width: 80px;">コミュニケ</span>
+                <input type="range" min="1" max="5" value="4" id="catComm">
+                <span class="value" id="catCommVal">4</span>
+              </div>
+            </div>
+          </div>
+          <div class="review-form-row" style="margin-top: 8px;">
+            <div>
+              <div class="review-form-slider">
+                <span style="font-size: 13px; width: 80px;">荷物管理</span>
+                <input type="range" min="1" max="5" value="5" id="catCargo">
+                <span class="value" id="catCargoVal">5</span>
+              </div>
+            </div>
+            <div>
+              <div class="review-form-slider">
+                <span style="font-size: 13px; width: 80px;">料金適正</span>
+                <input type="range" min="1" max="5" value="4" id="catPrice">
+                <span class="value" id="catPriceVal">4</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="review-form-group">
+          <label class="review-form-label">コメント</label>
+          <textarea class="review-textarea" placeholder="配送の感想を書いてください..."></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" onclick="closeModal()">キャンセル</button>
+        <button class="btn btn-primary" onclick="submitReview()">投稿する</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    const reviews = {
+      received: [
+        {
+          author: '鈴木運送株式会社', avatar: '鈴', matchId: 'M-001', route: '東京→大阪',
+          rating: 5, time: '時間厳守: 5', comm: 'コミュニケーション: 5', cargo: '荷物管理: 5', price: '料金: 4',
+          text: '非常にスムーズな取引でした。荷物の詳細情報も正確で、積み込みもスムーズでした。今後もぜひお取引させていただきたいです。',
+          date: '2026-03-21',
+          reply: { text: 'ご丁寧なレビューありがとうございます。こちらこそスムーズな配送をしていただき感謝しています。' }
+        },
+        {
+          author: '九州物流株式会社', avatar: '九', matchId: 'M-005', route: '福岡→熊本',
+          rating: 4, time: '時間厳守: 4', comm: 'コミュニケーション: 4', cargo: '荷物管理: 5', price: '料金: 4',
+          text: '安心してお任せできる荷主さんです。必要な情報を事前にしっかり共有してくださいます。一点、積み込み場所が少し分かりにくかったので、次回は地図を共有いただけると助かります。',
+          date: '2026-03-19',
+          reply: null
+        },
+        {
+          author: '関東運輸株式会社', avatar: '関', matchId: 'M-007', route: '大阪→東京',
+          rating: 5, time: '時間厳守: 5', comm: 'コミュニケーション: 5', cargo: '荷物管理: 5', price: '料金: 5',
+          text: '何度かお取引させていただいていますが、毎回丁寧な対応で助かっています。レスポンスも早く、おすすめの荷主さんです。',
+          date: '2026-03-17',
+          reply: { text: 'いつもありがとうございます！今後ともよろしくお願いいたします。' }
+        },
+      ],
+      sent: [
+        {
+          author: '田中 太郎（あなた）', avatar: '田', matchId: 'M-005', route: '福岡→熊本', target: '九州物流株式会社',
+          rating: 5, time: '時間厳守: 5', comm: 'コミュニケーション: 4', cargo: '荷物管理: 5', price: '料金: 5',
+          text: '予定通りの配送で安心でした。ドライバーの方も丁寧な対応でした。',
+          date: '2026-03-20', reply: null
+        },
+      ],
+      pending: [
+        {
+          author: '高橋運送株式会社', avatar: '高', matchId: 'M-004', route: '大阪→広島',
+          rating: null, text: null, date: '2026-03-20',
+          time: null, comm: null, cargo: null, price: null, reply: null
+        },
+      ],
+    };
+
+    let currentFilter = 'received';
+
+    function renderReviews() {
+      const list = document.getElementById('reviewList');
+      const data = reviews[currentFilter];
+
+      if (currentFilter === 'pending') {
+        list.innerHTML = data.map(r => `
+          <div class="review-card" style="display: flex; justify-content: space-between; align-items: center;">
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <div class="review-avatar" style="background: var(--warning)">${r.avatar}</div>
+              <div>
+                <h4 style="font-size: 14px; font-weight: 600;">${r.author}</h4>
+                <p style="font-size: 12px; color: var(--text-muted);">${r.matchId}: ${r.route} | ${r.date}</p>
+              </div>
+            </div>
+            <button class="btn btn-primary" onclick="openModal()">✏️ レビューを書く</button>
+          </div>
+        `).join('');
+        return;
+      }
+
+      list.innerHTML = data.map(r => `
+        <div class="review-card">
+          <div class="review-card-header">
+            <div class="review-author">
+              <div class="review-avatar">${r.avatar}</div>
+              <div class="review-author-info">
+                <h4>${r.author}${r.target ? ` → ${r.target}` : ''}</h4>
+                <p>${r.matchId}: ${r.route}</p>
+              </div>
+            </div>
+            <span class="review-match-id">${r.matchId}</span>
+          </div>
+          <div class="review-stars">${'★'.repeat(r.rating)}${'☆'.repeat(5 - r.rating)}</div>
+          <div class="review-categories">
+            <span class="review-category">${r.time}</span>
+            <span class="review-category">${r.comm}</span>
+            <span class="review-category">${r.cargo}</span>
+            <span class="review-category">${r.price}</span>
+          </div>
+          <div class="review-text">${r.text}</div>
+          <div class="review-date">${r.date}</div>
+          ${r.reply ? `
+            <div class="review-reply">
+              <div class="review-reply-label">返信</div>
+              <div class="review-reply-text">${r.reply.text}</div>
+            </div>
+          ` : currentFilter === 'received' ? `
+            <button class="btn btn-outline" style="margin-top: 12px; font-size: 13px; padding: 6px 14px;" onclick="showToast('返信機能をモック実装中')">返信する</button>
+          ` : ''}
+        </div>
+      `).join('');
+    }
+
+    // Tabs
+    document.querySelectorAll('.tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        currentFilter = tab.dataset.filter;
+        renderReviews();
+      });
+    });
+
+    // Star Input
+    let selectedRating = 0;
+    document.querySelectorAll('#starInput .star').forEach(star => {
+      star.addEventListener('click', () => {
+        selectedRating = parseInt(star.dataset.value);
+        document.querySelectorAll('#starInput .star').forEach((s, i) => {
+          s.classList.toggle('active', i < selectedRating);
+        });
+      });
+      star.addEventListener('mouseenter', () => {
+        const val = parseInt(star.dataset.value);
+        document.querySelectorAll('#starInput .star').forEach((s, i) => {
+          s.classList.toggle('active', i < val);
+        });
+      });
+    });
+    document.getElementById('starInput').addEventListener('mouseleave', () => {
+      document.querySelectorAll('#starInput .star').forEach((s, i) => {
+        s.classList.toggle('active', i < selectedRating);
+      });
+    });
+
+    // Sliders
+    ['catTime', 'catComm', 'catCargo', 'catPrice'].forEach(id => {
+      const el = document.getElementById(id);
+      el.addEventListener('input', () => {
+        document.getElementById(id + 'Val').textContent = el.value;
+      });
+    });
+
+    // Modal
+    function openModal() { document.getElementById('modal').classList.add('show'); }
+    function closeModal() { document.getElementById('modal').classList.remove('show'); }
+    document.getElementById('modal').addEventListener('click', (e) => { if (e.target === e.currentTarget) closeModal(); });
+
+    function submitReview() {
+      closeModal();
+      showToast('レビューを投稿しました！');
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      toast.textContent = '✓ ' + msg;
+      toast.className = 'toast success show';
+      setTimeout(() => toast.classList.remove('show'), 3000);
+    }
+
+    renderReviews();
+  </script>
+</body>
+</html>

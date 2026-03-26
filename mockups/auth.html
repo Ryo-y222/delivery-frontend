@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DeliveryMatch - ログイン / 新規登録</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --primary-light: #dbeafe;
+      --bg: #f8fafc;
+      --card: #ffffff;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+      --success: #10b981;
+      --error: #ef4444;
+      --error-bg: #fef2f2;
+      --radius: 12px;
+      --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 4px 12px rgba(0,0,0,0.04);
+      --shadow-lg: 0 4px 24px rgba(0,0,0,0.1);
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Hiragino Kaku Gothic ProN', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+    }
+
+    /* ===== LEFT PANEL (BRANDING) ===== */
+    .brand-panel {
+      flex: 1;
+      background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 50%, #3b82f6 100%);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 60px;
+      color: white;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .brand-panel::before {
+      content: '';
+      position: absolute;
+      top: -30%;
+      right: -20%;
+      width: 500px;
+      height: 500px;
+      background: rgba(255,255,255,0.05);
+      border-radius: 50%;
+    }
+
+    .brand-panel::after {
+      content: '';
+      position: absolute;
+      bottom: -20%;
+      left: -10%;
+      width: 400px;
+      height: 400px;
+      background: rgba(255,255,255,0.03);
+      border-radius: 50%;
+    }
+
+    .brand-content {
+      position: relative;
+      z-index: 1;
+      text-align: center;
+      max-width: 420px;
+    }
+
+    .brand-logo {
+      font-size: 42px;
+      font-weight: 800;
+      letter-spacing: -1px;
+      margin-bottom: 12px;
+    }
+
+    .brand-logo span {
+      color: #93c5fd;
+    }
+
+    .brand-tagline {
+      font-size: 18px;
+      opacity: 0.9;
+      line-height: 1.6;
+      margin-bottom: 48px;
+    }
+
+    .brand-features {
+      text-align: left;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .brand-feature {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+    }
+
+    .brand-feature-icon {
+      width: 40px;
+      height: 40px;
+      background: rgba(255,255,255,0.15);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+
+    .brand-feature-text h4 {
+      font-size: 15px;
+      font-weight: 600;
+      margin-bottom: 2px;
+    }
+
+    .brand-feature-text p {
+      font-size: 13px;
+      opacity: 0.75;
+    }
+
+    /* ===== RIGHT PANEL (AUTH FORM) ===== */
+    .auth-panel {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px;
+    }
+
+    .auth-container {
+      width: 100%;
+      max-width: 440px;
+    }
+
+    .auth-header {
+      margin-bottom: 32px;
+    }
+
+    .auth-header h1 {
+      font-size: 28px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .auth-header p {
+      color: var(--text-muted);
+      font-size: 15px;
+    }
+
+    /* Tab Switcher */
+    .tab-switcher {
+      display: flex;
+      background: #f1f5f9;
+      border-radius: 10px;
+      padding: 4px;
+      margin-bottom: 28px;
+    }
+
+    .tab-btn {
+      flex: 1;
+      padding: 10px;
+      border: none;
+      background: transparent;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-muted);
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .tab-btn.active {
+      background: white;
+      color: var(--text);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    /* Form Styles */
+    .auth-form {
+      display: none;
+    }
+
+    .auth-form.active {
+      display: block;
+      animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 6px;
+    }
+
+    .form-input {
+      width: 100%;
+      padding: 12px 14px;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      font-size: 15px;
+      font-family: inherit;
+      transition: all 0.2s;
+      background: white;
+    }
+
+    .form-input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px var(--primary-light);
+    }
+
+    .form-input.error {
+      border-color: var(--error);
+      box-shadow: 0 0 0 3px #fef2f2;
+    }
+
+    .form-input::placeholder {
+      color: #94a3b8;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .form-select {
+      width: 100%;
+      padding: 12px 14px;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      font-size: 15px;
+      font-family: inherit;
+      background: white;
+      cursor: pointer;
+      transition: all 0.2s;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%2364748b' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 14px center;
+    }
+
+    .form-select:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px var(--primary-light);
+    }
+
+    .error-message {
+      display: none;
+      color: var(--error);
+      font-size: 12px;
+      margin-top: 4px;
+      padding-left: 2px;
+    }
+
+    .error-message.show {
+      display: block;
+    }
+
+    .form-link {
+      text-align: right;
+      margin-bottom: 20px;
+    }
+
+    .form-link a {
+      color: var(--primary);
+      font-size: 13px;
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    .form-link a:hover {
+      text-decoration: underline;
+    }
+
+    /* Submit Button */
+    .btn-primary {
+      width: 100%;
+      padding: 13px;
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      transition: all 0.2s;
+      position: relative;
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-hover);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(37,99,235,0.3);
+    }
+
+    .btn-primary:active {
+      transform: translateY(0);
+    }
+
+    .btn-primary:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .btn-primary .spinner {
+      display: none;
+      width: 18px;
+      height: 18px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+      margin: 0 auto;
+    }
+
+    .btn-primary.loading .spinner { display: block; }
+    .btn-primary.loading .btn-text { display: none; }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .divider {
+      display: flex;
+      align-items: center;
+      margin: 24px 0;
+      color: var(--text-muted);
+      font-size: 13px;
+    }
+
+    .divider::before, .divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    .divider span {
+      padding: 0 16px;
+    }
+
+    /* Social Login */
+    .social-btn {
+      width: 100%;
+      padding: 12px;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      background: white;
+      font-size: 14px;
+      font-weight: 500;
+      font-family: inherit;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      transition: all 0.2s;
+      color: var(--text);
+    }
+
+    .social-btn:hover {
+      background: #f8fafc;
+      border-color: #cbd5e1;
+    }
+
+    .social-btn svg {
+      width: 18px;
+      height: 18px;
+    }
+
+    /* Toast Notification */
+    .toast {
+      position: fixed;
+      top: 24px;
+      right: 24px;
+      padding: 14px 20px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      z-index: 100;
+      transform: translateX(120%);
+      transition: transform 0.3s ease;
+      box-shadow: var(--shadow-lg);
+    }
+
+    .toast.show {
+      transform: translateX(0);
+    }
+
+    .toast.success {
+      background: #ecfdf5;
+      color: #065f46;
+      border: 1px solid #a7f3d0;
+    }
+
+    .toast.error {
+      background: var(--error-bg);
+      color: #991b1b;
+      border: 1px solid #fecaca;
+    }
+
+    /* Password strength */
+    .password-strength {
+      display: flex;
+      gap: 4px;
+      margin-top: 8px;
+    }
+
+    .strength-bar {
+      flex: 1;
+      height: 4px;
+      background: #e2e8f0;
+      border-radius: 2px;
+      transition: background 0.3s;
+    }
+
+    .strength-bar.weak { background: #ef4444; }
+    .strength-bar.medium { background: #f59e0b; }
+    .strength-bar.strong { background: #10b981; }
+
+    .strength-text {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    /* Responsive */
+    @media (max-width: 900px) {
+      body { flex-direction: column; }
+      .brand-panel { padding: 40px 30px; min-height: auto; }
+      .brand-features { display: none; }
+      .auth-panel { padding: 30px 20px; }
+    }
+  </style>
+</head>
+<body>
+  <!-- BRAND PANEL -->
+  <div class="brand-panel">
+    <div class="brand-content">
+      <div class="brand-logo">Delivery<span>Match</span></div>
+      <p class="brand-tagline">空車トラックと荷物をマッチング。<br>運送業界のDXを加速する。</p>
+      <div class="brand-features">
+        <div class="brand-feature">
+          <div class="brand-feature-icon">🚚</div>
+          <div class="brand-feature-text">
+            <h4>空車マッチング</h4>
+            <p>GPSなしでもルート予測で最適な配車を</p>
+          </div>
+        </div>
+        <div class="brand-feature">
+          <div class="brand-feature-icon">💬</div>
+          <div class="brand-feature-text">
+            <h4>セキュアチャット</h4>
+            <p>個人情報フィルタリング付きの安全な交渉</p>
+          </div>
+        </div>
+        <div class="brand-feature">
+          <div class="brand-feature-icon">📊</div>
+          <div class="brand-feature-text">
+            <h4>段階的情報開示</h4>
+            <p>マッチ状況に応じて会社情報を段階公開</p>
+          </div>
+        </div>
+        <div class="brand-feature">
+          <div class="brand-feature-icon">💳</div>
+          <div class="brand-feature-text">
+            <h4>安心の決済</h4>
+            <p>Stripe連携でスムーズな支払い管理</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- AUTH PANEL -->
+  <div class="auth-panel">
+    <div class="auth-container">
+      <div class="auth-header">
+        <h1 id="authTitle">ログイン</h1>
+        <p id="authDesc">アカウントにログインしてダッシュボードへ</p>
+      </div>
+
+      <div class="tab-switcher">
+        <button class="tab-btn active" data-tab="login">ログイン</button>
+        <button class="tab-btn" data-tab="register">新規登録</button>
+      </div>
+
+      <!-- LOGIN FORM -->
+      <form class="auth-form active" id="loginForm">
+        <div class="form-group">
+          <label class="form-label">メールアドレス</label>
+          <input type="email" class="form-input" id="loginEmail" placeholder="your@email.com" value="tanaka@example.com">
+          <div class="error-message" id="loginEmailError">有効なメールアドレスを入力してください</div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">パスワード</label>
+          <input type="password" class="form-input" id="loginPassword" placeholder="••••••••" value="password123">
+          <div class="error-message" id="loginPasswordError">パスワードを入力してください</div>
+        </div>
+        <div class="form-link">
+          <a href="#">パスワードを忘れた方</a>
+        </div>
+        <button type="submit" class="btn-primary" id="loginBtn">
+          <span class="btn-text">ログイン</span>
+          <div class="spinner"></div>
+        </button>
+        <div class="divider"><span>または</span></div>
+        <button type="button" class="social-btn">
+          <svg viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+          Googleでログイン
+        </button>
+      </form>
+
+      <!-- REGISTER FORM -->
+      <form class="auth-form" id="registerForm">
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">お名前</label>
+            <input type="text" class="form-input" id="regName" placeholder="田中 太郎">
+            <div class="error-message" id="regNameError">お名前を入力してください</div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">アカウント種別</label>
+            <select class="form-select" id="regRole">
+              <option value="shipper">荷主</option>
+              <option value="carrier">運送会社</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">会社名</label>
+          <input type="text" class="form-input" id="regCompany" placeholder="株式会社〇〇">
+          <div class="error-message" id="regCompanyError">会社名を入力してください</div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">メールアドレス</label>
+          <input type="email" class="form-input" id="regEmail" placeholder="your@email.com">
+          <div class="error-message" id="regEmailError">有効なメールアドレスを入力してください</div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">電話番号</label>
+          <input type="tel" class="form-input" id="regPhone" placeholder="090-1234-5678">
+        </div>
+        <div class="form-group">
+          <label class="form-label">パスワード</label>
+          <input type="password" class="form-input" id="regPassword" placeholder="8文字以上で設定">
+          <div class="password-strength" id="strengthBars">
+            <div class="strength-bar"></div>
+            <div class="strength-bar"></div>
+            <div class="strength-bar"></div>
+            <div class="strength-bar"></div>
+          </div>
+          <div class="strength-text" id="strengthText"></div>
+          <div class="error-message" id="regPasswordError">8文字以上のパスワードを設定してください</div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">パスワード（確認）</label>
+          <input type="password" class="form-input" id="regPasswordConfirm" placeholder="もう一度入力">
+          <div class="error-message" id="regPasswordConfirmError">パスワードが一致しません</div>
+        </div>
+        <button type="submit" class="btn-primary" id="registerBtn">
+          <span class="btn-text">アカウント作成</span>
+          <div class="spinner"></div>
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- TOAST -->
+  <div class="toast" id="toast"></div>
+
+  <script>
+    // ===== Mock Data =====
+    const mockUsers = [
+      { id: 1, email: 'tanaka@example.com', password: 'password123', name: '田中 太郎', role: 'shipper', company: '田中物流株式会社' },
+      { id: 2, email: 'suzuki@example.com', password: 'password123', name: '鈴木 花子', role: 'carrier', company: '鈴木運送株式会社' },
+    ];
+
+    // ===== Tab Switching =====
+    const tabBtns = document.querySelectorAll('.tab-btn');
+    const loginForm = document.getElementById('loginForm');
+    const registerForm = document.getElementById('registerForm');
+    const authTitle = document.getElementById('authTitle');
+    const authDesc = document.getElementById('authDesc');
+
+    tabBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        tabBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+
+        if (btn.dataset.tab === 'login') {
+          loginForm.classList.add('active');
+          registerForm.classList.remove('active');
+          authTitle.textContent = 'ログイン';
+          authDesc.textContent = 'アカウントにログインしてダッシュボードへ';
+        } else {
+          registerForm.classList.add('active');
+          loginForm.classList.remove('active');
+          authTitle.textContent = '新規登録';
+          authDesc.textContent = '無料アカウントを作成して始めましょう';
+        }
+      });
+    });
+
+    // ===== Toast =====
+    function showToast(message, type = 'success') {
+      const toast = document.getElementById('toast');
+      toast.textContent = (type === 'success' ? '✓ ' : '✕ ') + message;
+      toast.className = `toast ${type} show`;
+      setTimeout(() => toast.classList.remove('show'), 3000);
+    }
+
+    // ===== Validation Helpers =====
+    function showError(inputId, errorId) {
+      document.getElementById(inputId).classList.add('error');
+      document.getElementById(errorId).classList.add('show');
+    }
+
+    function clearErrors(form) {
+      form.querySelectorAll('.form-input').forEach(i => i.classList.remove('error'));
+      form.querySelectorAll('.error-message').forEach(e => e.classList.remove('show'));
+    }
+
+    function setLoading(btnId, loading) {
+      const btn = document.getElementById(btnId);
+      if (loading) { btn.classList.add('loading'); btn.disabled = true; }
+      else { btn.classList.remove('loading'); btn.disabled = false; }
+    }
+
+    // ===== Login =====
+    loginForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      clearErrors(loginForm);
+
+      const email = document.getElementById('loginEmail').value.trim();
+      const password = document.getElementById('loginPassword').value;
+      let valid = true;
+
+      if (!email || !email.includes('@')) { showError('loginEmail', 'loginEmailError'); valid = false; }
+      if (!password) { showError('loginPassword', 'loginPasswordError'); valid = false; }
+      if (!valid) return;
+
+      setLoading('loginBtn', true);
+
+      // Simulate API call
+      await new Promise(r => setTimeout(r, 1200));
+
+      const user = mockUsers.find(u => u.email === email && u.password === password);
+      setLoading('loginBtn', false);
+
+      if (user) {
+        showToast(`ようこそ、${user.name}さん！ダッシュボードに移動します...`);
+        setTimeout(() => {
+          // In real app: window.location.href = '/dashboard'
+          showToast(`リダイレクト先: dashboard.html (${user.role})`);
+        }, 1500);
+      } else {
+        showToast('メールアドレスまたはパスワードが正しくありません', 'error');
+      }
+    });
+
+    // ===== Register =====
+    registerForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      clearErrors(registerForm);
+
+      const name = document.getElementById('regName').value.trim();
+      const email = document.getElementById('regEmail').value.trim();
+      const company = document.getElementById('regCompany').value.trim();
+      const password = document.getElementById('regPassword').value;
+      const confirm = document.getElementById('regPasswordConfirm').value;
+      let valid = true;
+
+      if (!name) { showError('regName', 'regNameError'); valid = false; }
+      if (!company) { showError('regCompany', 'regCompanyError'); valid = false; }
+      if (!email || !email.includes('@')) { showError('regEmail', 'regEmailError'); valid = false; }
+      if (!password || password.length < 8) { showError('regPassword', 'regPasswordError'); valid = false; }
+      if (password !== confirm) { showError('regPasswordConfirm', 'regPasswordConfirmError'); valid = false; }
+      if (!valid) return;
+
+      // Check duplicate
+      if (mockUsers.find(u => u.email === email)) {
+        showToast('このメールアドレスは既に登録されています', 'error');
+        return;
+      }
+
+      setLoading('registerBtn', true);
+      await new Promise(r => setTimeout(r, 1500));
+
+      const role = document.getElementById('regRole').value;
+      const newUser = { id: mockUsers.length + 1, email, password, name, role, company };
+      mockUsers.push(newUser);
+
+      setLoading('registerBtn', false);
+      showToast('アカウントを作成しました！ログインしてください。');
+
+      // Switch to login tab
+      setTimeout(() => {
+        tabBtns[0].click();
+        document.getElementById('loginEmail').value = email;
+        document.getElementById('loginPassword').value = '';
+        document.getElementById('loginPassword').focus();
+      }, 1000);
+    });
+
+    // ===== Password Strength =====
+    document.getElementById('regPassword').addEventListener('input', (e) => {
+      const val = e.target.value;
+      const bars = document.querySelectorAll('.strength-bar');
+      const text = document.getElementById('strengthText');
+      let strength = 0;
+
+      if (val.length >= 8) strength++;
+      if (/[A-Z]/.test(val)) strength++;
+      if (/[0-9]/.test(val)) strength++;
+      if (/[^A-Za-z0-9]/.test(val)) strength++;
+
+      bars.forEach((bar, i) => {
+        bar.className = 'strength-bar';
+        if (i < strength) {
+          if (strength <= 1) bar.classList.add('weak');
+          else if (strength <= 2) bar.classList.add('medium');
+          else bar.classList.add('strong');
+        }
+      });
+
+      const labels = ['', '弱い', 'まあまあ', '強い', 'とても強い'];
+      text.textContent = val ? labels[strength] || '弱い' : '';
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DeliveryMatch - チャット</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --primary: #2563eb; --primary-hover: #1d4ed8; --primary-light: #dbeafe;
+      --bg: #f1f5f9; --card: #ffffff; --text: #0f172a; --text-muted: #64748b;
+      --border: #e2e8f0; --success: #10b981; --warning: #f59e0b; --error: #ef4444;
+      --radius: 12px; --shadow: 0 1px 3px rgba(0,0,0,0.06);
+    }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Hiragino Kaku Gothic ProN', sans-serif; background: var(--bg); color: var(--text); height: 100vh; overflow: hidden; }
+
+    .app { display: flex; height: 100vh; }
+
+    /* Sidebar */
+    .sidebar { width: 260px; background: #0f172a; color: white; flex-shrink: 0; display: flex; flex-direction: column; }
+    .sidebar-logo { padding: 20px 24px; font-size: 20px; font-weight: 800; border-bottom: 1px solid rgba(255,255,255,0.08); }
+    .sidebar-logo span { color: #60a5fa; }
+    .sidebar-nav { padding: 16px 12px; display: flex; flex-direction: column; gap: 2px; flex: 1; }
+    .nav-section { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: #475569; padding: 16px 12px 8px; }
+    .nav-item { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 8px; color: #94a3b8; text-decoration: none; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.15s; }
+    .nav-item:hover { background: rgba(255,255,255,0.06); color: white; }
+    .nav-item.active { background: var(--primary); color: white; }
+    .nav-item .icon { font-size: 18px; width: 24px; text-align: center; }
+    .nav-badge { margin-left: auto; background: var(--error); color: white; font-size: 11px; font-weight: 700; padding: 2px 7px; border-radius: 10px; }
+
+    /* Chat Layout */
+    .chat-layout { flex: 1; display: flex; overflow: hidden; }
+
+    /* Room List */
+    .room-list { width: 320px; background: white; border-right: 1px solid var(--border); display: flex; flex-direction: column; }
+    .room-list-header { padding: 16px 20px; border-bottom: 1px solid var(--border); }
+    .room-list-header h3 { font-size: 16px; font-weight: 700; margin-bottom: 12px; }
+    .room-search { width: 100%; padding: 10px 14px; border: 1.5px solid var(--border); border-radius: 8px; font-size: 14px; font-family: inherit; }
+    .room-search:focus { outline: none; border-color: var(--primary); }
+
+    .room-items { flex: 1; overflow-y: auto; }
+
+    .room-item { display: flex; gap: 12px; padding: 14px 20px; cursor: pointer; border-bottom: 1px solid #f8fafc; transition: background 0.15s; }
+    .room-item:hover { background: #f8fafc; }
+    .room-item.active { background: var(--primary-light); }
+
+    .room-avatar { width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 700; color: white; flex-shrink: 0; }
+    .room-avatar.blue { background: var(--primary); }
+    .room-avatar.green { background: var(--success); }
+    .room-avatar.orange { background: var(--warning); }
+
+    .room-info { flex: 1; min-width: 0; }
+    .room-name { font-size: 14px; font-weight: 600; margin-bottom: 2px; display: flex; justify-content: space-between; }
+    .room-name .time { font-size: 11px; color: var(--text-muted); font-weight: 400; }
+    .room-preview { font-size: 13px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .room-meta { display: flex; align-items: center; gap: 6px; margin-top: 4px; }
+    .room-match-id { font-size: 11px; background: #f1f5f9; padding: 2px 6px; border-radius: 4px; color: var(--text-muted); }
+    .room-unread { width: 20px; height: 20px; background: var(--primary); color: white; font-size: 11px; font-weight: 700; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+
+    /* Chat Area */
+    .chat-area { flex: 1; display: flex; flex-direction: column; background: #f8fafc; }
+
+    .chat-header { padding: 14px 24px; background: white; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+    .chat-header-left { display: flex; align-items: center; gap: 12px; }
+    .chat-header-avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--primary); display: flex; align-items: center; justify-content: center; color: white; font-size: 14px; font-weight: 700; }
+    .chat-header-info h4 { font-size: 15px; font-weight: 600; }
+    .chat-header-info p { font-size: 12px; color: var(--text-muted); }
+    .chat-header-actions { display: flex; gap: 8px; }
+    .chat-header-btn { width: 36px; height: 36px; border: 1px solid var(--border); border-radius: 8px; background: white; cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; }
+    .chat-header-btn:hover { background: #f8fafc; }
+
+    /* Messages */
+    .chat-messages { flex: 1; overflow-y: auto; padding: 20px 24px; display: flex; flex-direction: column; gap: 12px; }
+
+    .message { display: flex; gap: 10px; max-width: 70%; }
+    .message.sent { margin-left: auto; flex-direction: row-reverse; }
+
+    .message-avatar { width: 32px; height: 32px; border-radius: 50%; background: #cbd5e1; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: white; flex-shrink: 0; }
+    .message.sent .message-avatar { background: var(--primary); }
+
+    .message-bubble { padding: 10px 14px; border-radius: 12px; font-size: 14px; line-height: 1.5; }
+    .message:not(.sent) .message-bubble { background: white; border: 1px solid var(--border); border-bottom-left-radius: 4px; }
+    .message.sent .message-bubble { background: var(--primary); color: white; border-bottom-right-radius: 4px; }
+
+    .message-time { font-size: 11px; color: var(--text-muted); margin-top: 4px; padding: 0 4px; }
+    .message.sent .message-time { text-align: right; }
+
+    .message-system { text-align: center; padding: 8px 0; }
+    .message-system span { font-size: 12px; color: var(--text-muted); background: #e2e8f0; padding: 4px 12px; border-radius: 12px; }
+
+    .message-filtered { background: var(--error-bg) !important; border-color: var(--error) !important; }
+    .message-filtered-notice { font-size: 11px; color: var(--error); margin-top: 4px; display: flex; align-items: center; gap: 4px; }
+
+    /* Chat Input */
+    .chat-input { padding: 16px 24px; background: white; border-top: 1px solid var(--border); }
+    .chat-input-wrapper { display: flex; gap: 10px; align-items: flex-end; }
+    .chat-textarea { flex: 1; padding: 12px 14px; border: 1.5px solid var(--border); border-radius: 10px; font-size: 14px; font-family: inherit; resize: none; min-height: 44px; max-height: 120px; line-height: 1.4; }
+    .chat-textarea:focus { outline: none; border-color: var(--primary); }
+    .chat-send { width: 44px; height: 44px; border: none; background: var(--primary); color: white; border-radius: 10px; cursor: pointer; font-size: 18px; transition: background 0.15s; display: flex; align-items: center; justify-content: center; }
+    .chat-send:hover { background: var(--primary-hover); }
+    .chat-send:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .filter-warning { background: var(--warning-bg); color: #92400e; padding: 8px 14px; font-size: 12px; border-radius: 8px; margin-bottom: 8px; display: none; }
+    .filter-warning.show { display: block; }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <nav class="sidebar">
+      <div class="sidebar-logo">Delivery<span>Match</span></div>
+      <div class="sidebar-nav">
+        <div class="nav-section">メイン</div>
+        <a class="nav-item" href="dashboard.html"><span class="icon">📊</span> ダッシュボード</a>
+        <a class="nav-item" href="matching.html"><span class="icon">🔗</span> マッチング</a>
+        <a class="nav-item" href="dispatch.html"><span class="icon">🚚</span> 配車計画</a>
+        <a class="nav-item active" href="#"><span class="icon">💬</span> チャット <span class="nav-badge">5</span></a>
+        <div class="nav-section">管理</div>
+        <a class="nav-item" href="#"><span class="icon">🏢</span> 会社情報</a>
+        <a class="nav-item" href="#"><span class="icon">👤</span> ドライバー</a>
+        <a class="nav-item" href="#"><span class="icon">🚛</span> 車両管理</a>
+        <div class="nav-section">設定</div>
+        <a class="nav-item" href="payment.html"><span class="icon">💳</span> 決済・プラン</a>
+        <a class="nav-item" href="review.html"><span class="icon">⭐</span> レビュー</a>
+      </div>
+    </nav>
+
+    <div class="chat-layout">
+      <!-- Room List -->
+      <div class="room-list">
+        <div class="room-list-header">
+          <h3>チャット</h3>
+          <input type="text" class="room-search" placeholder="チャットを検索...">
+        </div>
+        <div class="room-items" id="roomList"></div>
+      </div>
+
+      <!-- Chat Area -->
+      <div class="chat-area">
+        <div class="chat-header">
+          <div class="chat-header-left">
+            <div class="chat-header-avatar" id="chatAvatar">鈴</div>
+            <div class="chat-header-info">
+              <h4 id="chatName">鈴木運送株式会社</h4>
+              <p id="chatMatch">M-001: 東京 → 大阪 | ¥85,000</p>
+            </div>
+          </div>
+          <div class="chat-header-actions">
+            <button class="chat-header-btn" title="マッチング詳細">📋</button>
+            <button class="chat-header-btn" title="通話">📞</button>
+            <button class="chat-header-btn" title="その他">⋯</button>
+          </div>
+        </div>
+
+        <div class="chat-messages" id="chatMessages"></div>
+
+        <div class="chat-input">
+          <div class="filter-warning" id="filterWarning">⚠️ 電話番号・メールアドレス・URLの送信はフィルタリングされます。</div>
+          <div class="chat-input-wrapper">
+            <textarea class="chat-textarea" id="messageInput" placeholder="メッセージを入力..." rows="1"></textarea>
+            <button class="chat-send" id="sendBtn" onclick="sendMessage()">➤</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ===== Mock Data =====
+    const rooms = [
+      { id: 1, name: '鈴木運送株式会社', avatar: '鈴', color: 'blue', matchId: 'M-001', route: '東京→大阪', amount: '¥85,000', lastMsg: '了解しました。明日の朝6時に出発しますね。', time: '10:30', unread: 2 },
+      { id: 2, name: '高橋運送株式会社', avatar: '高', color: 'green', matchId: 'M-004', route: '大阪→広島', amount: '¥45,000', lastMsg: '支払い手続きをお願いします。', time: '09:15', unread: 1 },
+      { id: 3, name: '九州物流株式会社', avatar: '九', color: 'orange', matchId: 'M-005', route: '福岡→熊本', amount: '¥28,000', lastMsg: '無事に配送完了しました。レビューもお願いします。', time: '昨日', unread: 0 },
+      { id: 4, name: '関東運輸株式会社', avatar: '関', color: 'blue', matchId: 'M-007', route: '大阪→東京', amount: '¥95,000', lastMsg: 'ありがとうございました！', time: '3/19', unread: 0 },
+    ];
+
+    const chatMessages = {
+      1: [
+        { type: 'system', text: 'チャットルームが作成されました - M-001: 東京 → 大阪' },
+        { type: 'received', sender: '鈴木', text: 'マッチングリクエストの確認をいたしました。冷凍食品の配送ですね。', time: '09:00' },
+        { type: 'sent', text: 'はい、冷凍食品5.2tです。冷蔵車での配送をお願いします。', time: '09:05' },
+        { type: 'received', sender: '鈴木', text: '承知しました。10t冷蔵車で対応可能です。出発は明日の朝でよろしいでしょうか？', time: '09:12' },
+        { type: 'sent', text: 'はい、朝6時に東京倉庫での積み込みをお願いします。', time: '09:20' },
+        { type: 'received', sender: '鈴木', text: '料金は85,000円でお見積もりします。', time: '09:45' },
+        { type: 'sent', text: '了解です。その金額でお願いします。', time: '09:50' },
+        { type: 'system', text: 'マッチングが承認されました' },
+        { type: 'received', sender: '鈴木', text: '了解しました。明日の朝6時に出発しますね。', time: '10:30' },
+      ],
+      2: [
+        { type: 'system', text: 'チャットルームが作成されました - M-004: 大阪 → 広島' },
+        { type: 'received', sender: '高橋', text: '配送完了しました。請求書をお送りいたします。', time: '08:30' },
+        { type: 'sent', text: '無事到着したようでよかったです。', time: '08:45' },
+        { type: 'received', sender: '高橋', text: '支払い手続きをお願いします。', time: '09:15' },
+      ],
+      3: [
+        { type: 'system', text: 'チャットルームが作成されました - M-005: 福岡 → 熊本' },
+        { type: 'received', sender: '九州', text: '無事に配送完了しました。レビューもお願いします。', time: '16:00' },
+        { type: 'sent', text: 'ありがとうございます！レビュー書きますね。', time: '16:30' },
+      ],
+    };
+
+    let currentRoom = 1;
+
+    // ===== Filter patterns (phone, email, URL) =====
+    const filterPatterns = [
+      /\d{2,4}-\d{2,4}-\d{3,4}/,      // phone
+      /0\d{9,10}/,                       // phone no dash
+      /[\w.-]+@[\w.-]+\.\w+/,           // email
+      /https?:\/\/\S+/,                  // URL
+      /www\.\S+/,                        // URL without protocol
+    ];
+
+    function containsFilteredContent(text) {
+      return filterPatterns.some(p => p.test(text));
+    }
+
+    // ===== Render Rooms =====
+    function renderRooms() {
+      const list = document.getElementById('roomList');
+      list.innerHTML = rooms.map(r => `
+        <div class="room-item ${r.id === currentRoom ? 'active' : ''}" onclick="switchRoom(${r.id})">
+          <div class="room-avatar ${r.color}">${r.avatar}</div>
+          <div class="room-info">
+            <div class="room-name">
+              <span>${r.name}</span>
+              <span class="time">${r.time}</span>
+            </div>
+            <div class="room-preview">${r.lastMsg}</div>
+            <div class="room-meta">
+              <span class="room-match-id">${r.matchId}: ${r.route}</span>
+              ${r.unread > 0 ? `<span class="room-unread">${r.unread}</span>` : ''}
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // ===== Render Messages =====
+    function renderMessages() {
+      const container = document.getElementById('chatMessages');
+      const msgs = chatMessages[currentRoom] || [];
+
+      container.innerHTML = msgs.map(m => {
+        if (m.type === 'system') {
+          return `<div class="message-system"><span>${m.text}</span></div>`;
+        }
+        const isSent = m.type === 'sent';
+        return `
+          <div class="message ${isSent ? 'sent' : ''}">
+            <div class="message-avatar">${isSent ? '田' : m.sender[0]}</div>
+            <div>
+              <div class="message-bubble ${m.filtered ? 'message-filtered' : ''}">${m.text}</div>
+              ${m.filtered ? '<div class="message-filtered-notice">⚠️ 個人情報がフィルタリングされました</div>' : ''}
+              <div class="message-time">${m.time}</div>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      container.scrollTop = container.scrollHeight;
+    }
+
+    // ===== Switch Room =====
+    function switchRoom(roomId) {
+      currentRoom = roomId;
+      const room = rooms.find(r => r.id === roomId);
+      room.unread = 0;
+
+      document.getElementById('chatAvatar').textContent = room.avatar;
+      document.getElementById('chatName').textContent = room.name;
+      document.getElementById('chatMatch').textContent = `${room.matchId}: ${room.route} | ${room.amount}`;
+
+      renderRooms();
+      renderMessages();
+    }
+
+    // ===== Send Message =====
+    function sendMessage() {
+      const input = document.getElementById('messageInput');
+      const text = input.value.trim();
+      if (!text) return;
+
+      const now = new Date();
+      const timeStr = `${now.getHours()}:${String(now.getMinutes()).padStart(2, '0')}`;
+
+      if (containsFilteredContent(text)) {
+        const filteredText = text
+          .replace(/\d{2,4}-\d{2,4}-\d{3,4}/g, '[電話番号フィルタ済]')
+          .replace(/0\d{9,10}/g, '[電話番号フィルタ済]')
+          .replace(/[\w.-]+@[\w.-]+\.\w+/g, '[メールフィルタ済]')
+          .replace(/https?:\/\/\S+/g, '[URLフィルタ済]')
+          .replace(/www\.\S+/g, '[URLフィルタ済]');
+
+        chatMessages[currentRoom].push({ type: 'sent', text: filteredText, time: timeStr, filtered: true });
+        document.getElementById('filterWarning').classList.add('show');
+        setTimeout(() => document.getElementById('filterWarning').classList.remove('show'), 3000);
+      } else {
+        chatMessages[currentRoom].push({ type: 'sent', text, time: timeStr });
+      }
+
+      input.value = '';
+      renderMessages();
+
+      // Auto reply after 1.5s
+      setTimeout(() => {
+        const replies = [
+          '承知しました。確認いたします。',
+          'ありがとうございます。対応いたします。',
+          '了解です。よろしくお願いいたします。',
+        ];
+        const reply = replies[Math.floor(Math.random() * replies.length)];
+        const room = rooms.find(r => r.id === currentRoom);
+        const sender = room.name[0];
+
+        chatMessages[currentRoom].push({
+          type: 'received', sender, text: reply,
+          time: `${now.getHours()}:${String(now.getMinutes() + 1).padStart(2, '0')}`
+        });
+        renderMessages();
+      }, 1500);
+    }
+
+    // ===== Textarea auto-resize & Enter to send =====
+    const textarea = document.getElementById('messageInput');
+    textarea.addEventListener('input', () => {
+      textarea.style.height = 'auto';
+      textarea.style.height = Math.min(textarea.scrollHeight, 120) + 'px';
+    });
+    textarea.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+      }
+    });
+
+    // Init
+    renderRooms();
+    renderMessages();
+  </script>
+</body>
+</html>

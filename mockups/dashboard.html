@@ -1,0 +1,810 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DeliveryMatch - ダッシュボード</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --primary-light: #dbeafe;
+      --bg: #f1f5f9;
+      --card: #ffffff;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+      --success: #10b981;
+      --success-bg: #ecfdf5;
+      --warning: #f59e0b;
+      --warning-bg: #fffbeb;
+      --error: #ef4444;
+      --error-bg: #fef2f2;
+      --info: #3b82f6;
+      --info-bg: #eff6ff;
+      --sidebar-w: 260px;
+      --header-h: 64px;
+      --radius: 12px;
+      --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 2px 8px rgba(0,0,0,0.04);
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Hiragino Kaku Gothic ProN', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    /* ===== SIDEBAR ===== */
+    .sidebar {
+      position: fixed;
+      left: 0;
+      top: 0;
+      width: var(--sidebar-w);
+      height: 100vh;
+      background: #0f172a;
+      color: white;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      z-index: 100;
+    }
+
+    .sidebar-logo {
+      padding: 20px 24px;
+      font-size: 20px;
+      font-weight: 800;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .sidebar-logo span { color: #60a5fa; }
+
+    .sidebar-nav {
+      flex: 1;
+      padding: 16px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .nav-section {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #475569;
+      padding: 16px 12px 8px;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 12px;
+      border-radius: 8px;
+      color: #94a3b8;
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
+      transition: all 0.15s;
+      cursor: pointer;
+    }
+
+    .nav-item:hover { background: rgba(255,255,255,0.06); color: white; }
+    .nav-item.active { background: var(--primary); color: white; }
+
+    .nav-item .icon { font-size: 18px; width: 24px; text-align: center; }
+
+    .nav-badge {
+      margin-left: auto;
+      background: var(--error);
+      color: white;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 10px;
+    }
+
+    .sidebar-footer {
+      padding: 16px;
+      border-top: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .user-card {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    .user-card:hover { background: rgba(255,255,255,0.06); }
+
+    .user-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: var(--primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .user-info { flex: 1; }
+    .user-name { font-size: 13px; font-weight: 600; }
+    .user-role { font-size: 11px; color: #64748b; }
+
+    /* ===== HEADER ===== */
+    .header {
+      position: fixed;
+      top: 0;
+      left: var(--sidebar-w);
+      right: 0;
+      height: var(--header-h);
+      background: white;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 28px;
+      z-index: 90;
+    }
+
+    .header-left h2 {
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+    .header-left p {
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .header-btn {
+      width: 40px;
+      height: 40px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 18px;
+      position: relative;
+      transition: all 0.15s;
+    }
+
+    .header-btn:hover { background: #f8fafc; }
+
+    .header-btn .dot {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      width: 8px;
+      height: 8px;
+      background: var(--error);
+      border-radius: 50%;
+      border: 2px solid white;
+    }
+
+    .role-switcher {
+      display: flex;
+      background: #f1f5f9;
+      border-radius: 8px;
+      padding: 3px;
+    }
+
+    .role-btn {
+      padding: 6px 14px;
+      border: none;
+      background: transparent;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-muted);
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .role-btn.active {
+      background: white;
+      color: var(--text);
+      box-shadow: 0 1px 2px rgba(0,0,0,0.08);
+    }
+
+    /* ===== MAIN CONTENT ===== */
+    .main {
+      margin-left: var(--sidebar-w);
+      margin-top: var(--header-h);
+      padding: 28px;
+    }
+
+    /* Stats Cards */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 28px;
+    }
+
+    .stat-card {
+      background: white;
+      border-radius: var(--radius);
+      padding: 20px;
+      box-shadow: var(--shadow);
+    }
+
+    .stat-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 12px;
+    }
+
+    .stat-label {
+      font-size: 13px;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .stat-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+    }
+
+    .stat-value {
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      margin-bottom: 4px;
+    }
+
+    .stat-change {
+      font-size: 12px;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 2px;
+    }
+
+    .stat-change.up { color: var(--success); }
+    .stat-change.down { color: var(--error); }
+
+    /* Content Grid */
+    .content-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 20px;
+      margin-bottom: 28px;
+    }
+
+    .card {
+      background: white;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 18px 20px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .card-title {
+      font-size: 15px;
+      font-weight: 700;
+    }
+
+    .card-action {
+      font-size: 13px;
+      color: var(--primary);
+      text-decoration: none;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .card-action:hover { text-decoration: underline; }
+
+    .card-body { padding: 20px; }
+
+    /* Recent Matches Table */
+    .match-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .match-table th {
+      text-align: left;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      padding: 0 12px 12px;
+    }
+
+    .match-table td {
+      padding: 12px;
+      font-size: 14px;
+      border-top: 1px solid var(--border);
+    }
+
+    .match-route {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .match-route .from, .match-route .to {
+      font-weight: 600;
+    }
+
+    .match-route .arrow {
+      color: var(--text-muted);
+      font-size: 12px;
+    }
+
+    .status-badge {
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      display: inline-block;
+    }
+
+    .status-badge.pending { background: var(--warning-bg); color: #92400e; }
+    .status-badge.approved { background: var(--success-bg); color: #065f46; }
+    .status-badge.payment { background: var(--info-bg); color: #1e40af; }
+    .status-badge.completed { background: #f0fdf4; color: #166534; }
+    .status-badge.rejected { background: var(--error-bg); color: #991b1b; }
+
+    /* Activity Feed */
+    .activity-list {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .activity-item {
+      display: flex;
+      gap: 12px;
+      padding: 14px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .activity-item:last-child { border-bottom: none; }
+
+    .activity-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      margin-top: 6px;
+      flex-shrink: 0;
+    }
+
+    .activity-dot.blue { background: var(--primary); }
+    .activity-dot.green { background: var(--success); }
+    .activity-dot.orange { background: var(--warning); }
+    .activity-dot.red { background: var(--error); }
+
+    .activity-text {
+      font-size: 13px;
+      line-height: 1.5;
+      color: var(--text);
+    }
+
+    .activity-text strong { font-weight: 600; }
+
+    .activity-time {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    /* Bottom Grid */
+    .bottom-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    /* Quick Actions */
+    .quick-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .quick-action-btn {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 14px 16px;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      background: white;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+      cursor: pointer;
+      transition: all 0.15s;
+      font-family: inherit;
+    }
+
+    .quick-action-btn:hover {
+      border-color: var(--primary);
+      background: var(--primary-light);
+    }
+
+    .quick-action-btn .icon { font-size: 20px; }
+
+    /* Chart placeholder */
+    .chart-area {
+      height: 200px;
+      display: flex;
+      align-items: flex-end;
+      gap: 8px;
+      padding: 0 8px;
+    }
+
+    .chart-bar-group {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .chart-bar {
+      width: 100%;
+      border-radius: 4px 4px 0 0;
+      transition: height 0.6s ease;
+    }
+
+    .chart-bar.primary { background: var(--primary); }
+    .chart-bar.light { background: #bfdbfe; }
+
+    .chart-label {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .chart-legend {
+      display: flex;
+      gap: 20px;
+      margin-top: 16px;
+      justify-content: center;
+    }
+
+    .chart-legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .chart-legend-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 2px;
+    }
+
+    @media (max-width: 1200px) {
+      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+      .content-grid { grid-template-columns: 1fr; }
+      .bottom-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <!-- SIDEBAR -->
+  <nav class="sidebar">
+    <div class="sidebar-logo">Delivery<span>Match</span></div>
+    <div class="sidebar-nav">
+      <div class="nav-section">メイン</div>
+      <a class="nav-item active" href="#"><span class="icon">📊</span> ダッシュボード</a>
+      <a class="nav-item" href="matching.html"><span class="icon">🔗</span> マッチング <span class="nav-badge">3</span></a>
+      <a class="nav-item" href="dispatch.html"><span class="icon">🚚</span> 配車計画</a>
+      <a class="nav-item" href="chat.html"><span class="icon">💬</span> チャット <span class="nav-badge">5</span></a>
+
+      <div class="nav-section">管理</div>
+      <a class="nav-item" href="#"><span class="icon">🏢</span> 会社情報</a>
+      <a class="nav-item" href="#"><span class="icon">👤</span> ドライバー</a>
+      <a class="nav-item" href="#"><span class="icon">🚛</span> 車両管理</a>
+
+      <div class="nav-section">設定</div>
+      <a class="nav-item" href="payment.html"><span class="icon">💳</span> 決済・プラン</a>
+      <a class="nav-item" href="review.html"><span class="icon">⭐</span> レビュー</a>
+      <a class="nav-item" href="#"><span class="icon">⚙️</span> 設定</a>
+    </div>
+    <div class="sidebar-footer">
+      <div class="user-card">
+        <div class="user-avatar">田</div>
+        <div class="user-info">
+          <div class="user-name" id="userName">田中 太郎</div>
+          <div class="user-role" id="userRole">荷主</div>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- HEADER -->
+  <header class="header">
+    <div class="header-left">
+      <h2>ダッシュボード</h2>
+      <p>2026年3月21日（土）</p>
+    </div>
+    <div class="header-right">
+      <div class="role-switcher">
+        <button class="role-btn active" data-role="shipper">荷主ビュー</button>
+        <button class="role-btn" data-role="carrier">運送会社ビュー</button>
+      </div>
+      <button class="header-btn">🔔<span class="dot"></span></button>
+      <button class="header-btn">⚙️</button>
+    </div>
+  </header>
+
+  <!-- MAIN -->
+  <main class="main">
+    <!-- STATS -->
+    <div class="stats-grid" id="statsGrid">
+      <!-- Filled by JS -->
+    </div>
+
+    <!-- CONTENT GRID -->
+    <div class="content-grid">
+      <!-- Recent Matches -->
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title">最近のマッチング</h3>
+          <a class="card-action" href="matching.html">すべて見る →</a>
+        </div>
+        <div class="card-body" style="padding: 0 20px 20px;">
+          <table class="match-table" id="matchTable">
+            <thead>
+              <tr>
+                <th>ルート</th>
+                <th>日付</th>
+                <th>ステータス</th>
+                <th>金額</th>
+              </tr>
+            </thead>
+            <tbody id="matchBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Activity Feed -->
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title">アクティビティ</h3>
+          <a class="card-action">すべて見る →</a>
+        </div>
+        <div class="card-body">
+          <div class="activity-list" id="activityList"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- BOTTOM GRID -->
+    <div class="bottom-grid">
+      <!-- Chart -->
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title">月別マッチング推移</h3>
+        </div>
+        <div class="card-body">
+          <div class="chart-area" id="chartArea"></div>
+          <div class="chart-legend">
+            <div class="chart-legend-item"><div class="chart-legend-dot" style="background: var(--primary)"></div>成約</div>
+            <div class="chart-legend-item"><div class="chart-legend-dot" style="background: #bfdbfe"></div>リクエスト</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Actions -->
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title">クイックアクション</h3>
+        </div>
+        <div class="card-body">
+          <div class="quick-actions" id="quickActions"></div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    // ===== Mock Data =====
+    const mockData = {
+      shipper: {
+        stats: [
+          { label: '進行中の配送', value: '12', change: '+3', up: true, icon: '📦', color: 'var(--info-bg)' },
+          { label: 'マッチング待ち', value: '5', change: '+2', up: true, icon: '🔗', color: 'var(--warning-bg)' },
+          { label: '今月の支出', value: '¥842,000', change: '-12%', up: false, icon: '💰', color: 'var(--success-bg)' },
+          { label: '平均評価', value: '4.7', change: '+0.2', up: true, icon: '⭐', color: '#fef9c3' },
+        ],
+        matches: [
+          { from: '東京', to: '大阪', date: '3/21', status: 'approved', statusLabel: '承認済み', amount: '¥85,000' },
+          { from: '名古屋', to: '福岡', date: '3/20', status: 'payment', statusLabel: '支払待ち', amount: '¥120,000' },
+          { from: '横浜', to: '仙台', date: '3/19', status: 'pending', statusLabel: '申請中', amount: '¥65,000' },
+          { from: '大阪', to: '広島', date: '3/18', status: 'completed', statusLabel: '完了', amount: '¥45,000' },
+          { from: '東京', to: '札幌', date: '3/17', status: 'rejected', statusLabel: '却下', amount: '¥180,000' },
+        ],
+        activities: [
+          { dot: 'green', text: '<strong>鈴木運送</strong>が東京→大阪の配送を承認しました', time: '30分前' },
+          { dot: 'blue', text: '名古屋→福岡の<strong>支払い</strong>が処理待ちです', time: '1時間前' },
+          { dot: 'orange', text: '<strong>新しいメッセージ</strong>: 佐藤運送より見積もり回答', time: '2時間前' },
+          { dot: 'green', text: '大阪→広島の配送が<strong>完了</strong>しました', time: '昨日' },
+          { dot: 'red', text: '東京→札幌のマッチングが<strong>却下</strong>されました', time: '昨日' },
+        ],
+        quickActions: [
+          { icon: '📦', label: '新規配送依頼' },
+          { icon: '🔍', label: 'トラック検索' },
+          { icon: '📋', label: '配送履歴' },
+          { icon: '💳', label: '支払い管理' },
+        ],
+      },
+      carrier: {
+        stats: [
+          { label: '稼働中の車両', value: '8', change: '+1', up: true, icon: '🚛', color: 'var(--info-bg)' },
+          { label: '空車トラック', value: '3', change: '-1', up: false, icon: '📍', color: 'var(--warning-bg)' },
+          { label: '今月の売上', value: '¥1,250,000', change: '+18%', up: true, icon: '💰', color: 'var(--success-bg)' },
+          { label: '平均評価', value: '4.8', change: '+0.1', up: true, icon: '⭐', color: '#fef9c3' },
+        ],
+        matches: [
+          { from: '東京', to: '大阪', date: '3/21', status: 'approved', statusLabel: '承認済み', amount: '¥85,000' },
+          { from: '名古屋', to: '福岡', date: '3/20', status: 'pending', statusLabel: '申請中', amount: '¥120,000' },
+          { from: '大阪', to: '神戸', date: '3/19', status: 'completed', statusLabel: '完了', amount: '¥35,000' },
+          { from: '横浜', to: '仙台', date: '3/18', status: 'pending', statusLabel: '申請中', amount: '¥65,000' },
+          { from: '福岡', to: '熊本', date: '3/17', status: 'completed', statusLabel: '完了', amount: '¥28,000' },
+        ],
+        activities: [
+          { dot: 'blue', text: '<strong>田中物流</strong>から東京→大阪の配送依頼が届きました', time: '15分前' },
+          { dot: 'green', text: '大阪→神戸の配送が<strong>完了</strong>しました', time: '3時間前' },
+          { dot: 'orange', text: 'ドライバー<strong>山田</strong>の点呼が未完了です', time: '4時間前' },
+          { dot: 'blue', text: '新しい<strong>チャットメッセージ</strong>があります', time: '昨日' },
+          { dot: 'green', text: '福岡→熊本の<strong>支払い</strong>を受領しました', time: '昨日' },
+        ],
+        quickActions: [
+          { icon: '🚛', label: '空車登録' },
+          { icon: '📋', label: '配車一覧' },
+          { icon: '👤', label: 'ドライバー管理' },
+          { icon: '📊', label: '売上レポート' },
+        ],
+      }
+    };
+
+    const chartData = [
+      { month: '10月', requests: 45, deals: 32 },
+      { month: '11月', requests: 52, deals: 38 },
+      { month: '12月', requests: 48, deals: 35 },
+      { month: '1月', requests: 60, deals: 42 },
+      { month: '2月', requests: 55, deals: 40 },
+      { month: '3月', requests: 68, deals: 48 },
+    ];
+
+    // ===== Render Functions =====
+    let currentRole = 'shipper';
+
+    function renderStats(role) {
+      const grid = document.getElementById('statsGrid');
+      const data = mockData[role].stats;
+      grid.innerHTML = data.map(s => `
+        <div class="stat-card">
+          <div class="stat-header">
+            <div class="stat-label">${s.label}</div>
+            <div class="stat-icon" style="background: ${s.color}">${s.icon}</div>
+          </div>
+          <div class="stat-value">${s.value}</div>
+          <span class="stat-change ${s.up ? 'up' : 'down'}">${s.up ? '↑' : '↓'} ${s.change} 前月比</span>
+        </div>
+      `).join('');
+    }
+
+    function renderMatches(role) {
+      const tbody = document.getElementById('matchBody');
+      const data = mockData[role].matches;
+      tbody.innerHTML = data.map(m => `
+        <tr>
+          <td>
+            <div class="match-route">
+              <span class="from">${m.from}</span>
+              <span class="arrow">→</span>
+              <span class="to">${m.to}</span>
+            </div>
+          </td>
+          <td>${m.date}</td>
+          <td><span class="status-badge ${m.status}">${m.statusLabel}</span></td>
+          <td style="font-weight: 600">${m.amount}</td>
+        </tr>
+      `).join('');
+    }
+
+    function renderActivities(role) {
+      const list = document.getElementById('activityList');
+      const data = mockData[role].activities;
+      list.innerHTML = data.map(a => `
+        <div class="activity-item">
+          <div class="activity-dot ${a.dot}"></div>
+          <div>
+            <div class="activity-text">${a.text}</div>
+            <div class="activity-time">${a.time}</div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function renderQuickActions(role) {
+      const container = document.getElementById('quickActions');
+      const data = mockData[role].quickActions;
+      container.innerHTML = data.map(a => `
+        <button class="quick-action-btn">
+          <span class="icon">${a.icon}</span>
+          ${a.label}
+        </button>
+      `).join('');
+    }
+
+    function renderChart() {
+      const area = document.getElementById('chartArea');
+      const maxVal = Math.max(...chartData.map(d => d.requests));
+      area.innerHTML = chartData.map(d => `
+        <div class="chart-bar-group">
+          <div class="chart-bar light" style="height: ${(d.requests / maxVal) * 180}px"></div>
+          <div class="chart-bar primary" style="height: ${(d.deals / maxVal) * 180}px; margin-top: -${(d.deals / maxVal) * 180}px"></div>
+          <div class="chart-label">${d.month}</div>
+        </div>
+      `).join('');
+    }
+
+    function renderAll(role) {
+      renderStats(role);
+      renderMatches(role);
+      renderActivities(role);
+      renderQuickActions(role);
+      renderChart();
+
+      // Update user card
+      if (role === 'shipper') {
+        document.getElementById('userName').textContent = '田中 太郎';
+        document.getElementById('userRole').textContent = '荷主';
+      } else {
+        document.getElementById('userName').textContent = '鈴木 花子';
+        document.getElementById('userRole').textContent = '運送会社';
+      }
+    }
+
+    // ===== Role Switcher =====
+    document.querySelectorAll('.role-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.role-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentRole = btn.dataset.role;
+        renderAll(currentRole);
+      });
+    });
+
+    // Init
+    renderAll('shipper');
+  </script>
+</body>
+</html>

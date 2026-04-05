@@ -9,7 +9,7 @@ export const loginSchema = z.object({
 export type LoginInput = z.infer<typeof loginSchema>;
 
 export const registerSchema = z.object({
-    role: z.enum(["carrier","shipper"],{
+    role: z.enum(["transport_company","shipper"],{
         message: "アカウント種別を選択してください",
     }),
     name: z.string().min(1, "お名前を入力してください"),

@@ -22,7 +22,6 @@ export const useAppStore = create<AppState>((set) => ({
   setPage: (page) => set({ page }),
   setTab: (tab) => set({ tab }),
   showToast: (message, type = "success") => {
-  console.log("appStore showToast:", message);
   set({ toast: { message, type } });
   },
   hideToast: () => set({ toast: null }),

@@ -1,0 +1,34 @@
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #52525b;
+}
+
+.input {
+  padding: 10px 14px;
+  border: 1.5px solid #e0dfd7;
+  border-radius: 6px;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.15s;
+  background: #ffffff;
+  color: #18181b;
+}
+
+.input:focus {
+  border-color: #e85d26;
+}
+
+.errorMsg {
+  font-size: 11px;
+  color: #dc2626;
+}

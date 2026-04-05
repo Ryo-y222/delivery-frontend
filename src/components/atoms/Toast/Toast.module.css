@@ -1,0 +1,39 @@
+.toast {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 16px 24px;
+  font-size: 14px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center; 
+  gap: 10px;
+  z-index: 999;
+  animation: slideUp 0.25s ease;
+}
+
+.success {
+  background: #0ea5e9;
+  color: #ffffff;
+}
+
+.error {
+  background: #ef4444;
+  color: #ffffff;
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(100%); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideDown {
+  from { opacity: 1; transform: translateY(0); }
+  to   { opacity: 0; transform: translateY(100%); }
+}
+
+.hiding {
+  animation: slideDown 0.25s ease forwards;
+}

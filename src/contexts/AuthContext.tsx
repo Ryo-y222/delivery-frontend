@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import type { User, RegisterData} from "./types";
 import { AuthContext } from "./authContextStore";
 import apiClient from "../api/client";
+import toast from "react-hot-toast";
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
@@ -20,22 +21,41 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     };
     checkAuth();
-  }, []);
+    const handleUnauthorized = () => {
+      setUser(null);
+      toast.error("セッションの有効期限が切れました。再度ログインしてください");
+    };
+  window.addEventListener("auth:unauthorized", handleUnauthorized);
+  return () => window.removeEventListener("auth:unauthorized", handleUnauthorized);
+}, []);
 
   const login = async (email: string, password: string) => {
-    const data = await apiClient.post<{ user: User }>("/auth/login", { email, password });
-    setUser(data.user);
+    try {
+      const data = await apiClient.post<{ user: User }>("/auth/login", { email, password });
+      setUser(data.user);
+      toast.success("ログインしました。おかえりなさい！");
+    } catch (error) {
+      toast.error("ログインに失敗しました。");
+      throw error;
+    }
   };
 
   const register = async (registerData: RegisterData) => {
-    await apiClient.post("/auth/register", registerData);
-    const me = await apiClient.get<{ user: User }>("/users/me");
-    setUser(me.user);
+    try {
+      await apiClient.post("/auth/register", registerData);
+      const me = await apiClient.get<{ user: User }>("/users/me");
+      setUser(me.user);
+      toast.success("アカウントを作成しました。ようこそ！");
+    } catch (error) {
+      toast.error("登録に失敗しました。入力内容を確認してください");
+      throw error;
+    }
   };
 
   const logout = async () => {
     await apiClient.post("/auth/logout", {});
     setUser(null);
+    toast("ログアウトしました");
   };
 
   return (

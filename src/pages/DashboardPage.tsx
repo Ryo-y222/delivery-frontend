@@ -1,6 +1,43 @@
+import { useState } from "react";
+import type { UserRole } from "../mocks/types/common";
+import { dashboardDataCarrier, dashboardDataShipper, chartData } from "../mocks/data/dashboard";
+import { StatCard } from "../features/dashboard/components/StatCard";
+import { RecentMatchesTable } from "../features/dashboard/components/RecentMatchesTable";
+import { ActivityFeed } from "../features/dashboard/components/ActivityFeed";
+import { MatchingChart } from "../features/dashboard/components/MatchingChart";
+import { QuickActions } from "../features/dashboard/components/QuickActions";
+import styles from "./DashboardPage.module.css";
 
 export function DashboardPage() {
-  return <div>ダッシュボード（仮）</div>;
+  // const [currentRole, setCurrentRole] = useState<UserRole>("transport_company");
+  const [currentRole] = useState<UserRole>("transport_company");
+
+  const data = currentRole === "transport_company"
+    ? dashboardDataCarrier
+    : dashboardDataShipper;
+
+  return (
+    <div>
+      {/* Stats */}
+      <div className={styles.statsGrid}>
+        {data.stats.map(s => (
+          <StatCard key={s.label} {...s} />
+        ))}
+      </div>
+
+      {/* Middle: Table + Activity */}
+      <div className={styles.contentGrid}>
+        <RecentMatchesTable matches={data.matches} />
+        <ActivityFeed activities={data.activities} />
+      </div>
+
+      {/* Bottom: Chart + QuickActions */}
+      <div className={styles.bottomGrid}>
+        <MatchingChart data={chartData} />
+        <QuickActions actions={data.quickActions} />
+      </div>
+    </div>
+  );
 }
 // import { useAuth } from "../contexts/useAuth";
 // import { useNavigate } from "react-router-dom";

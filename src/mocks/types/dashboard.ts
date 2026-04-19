@@ -1,11 +1,12 @@
 import type { StatusBadgeVariant } from './common';
+import type { LucideIcon } from "lucide-react";
 
 export interface StatCard {
   label: string;
   value: string;
   change: string;
   up: boolean;
-  icon: string;
+  icon: LucideIcon;
   color: string;
 }
 
@@ -25,7 +26,7 @@ export interface ActivityItem {
 }
 
 export interface QuickAction {
-  icon: string;
+  icon: LucideIcon;
   label: string;
 }
 

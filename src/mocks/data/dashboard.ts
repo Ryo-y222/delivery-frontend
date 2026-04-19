@@ -1,11 +1,12 @@
 import type { DashboardData, ChartDataPoint } from '../types/dashboard';
+import { GitMerge, TrendingUp, AlertCircle, Package, CreditCard, Users, Plus, Search, ClipboardList, MessageSquare } from "lucide-react";
 
 export const dashboardDataCarrier: DashboardData = {
   stats: [
-    { label: "今月のマッチング", value: "24", change: "+12%", up: true, icon: "🔗", color: "#e85d26" },
-    { label: "稼働中ドライバー", value: "8", change: "+2", up: true, icon: "🚛", color: "#0ea5e9" },
-    { label: "今月の売上", value: "¥1,240,000", change: "+8%", up: true, icon: "💴", color: "#16a34a" },
-    { label: "未対応アラート", value: "3", change: "-1", up: false, icon: "⚠️", color: "#dc2626" },
+    { label: "今月のマッチング", value: "24", change: "+12%", up: true, icon: GitMerge, color: "#e85d26" },
+    { label: "稼働中ドライバー", value: "8", change: "+2", up: true, icon: Users, color: "#0ea5e9" },
+    { label: "今月の売上", value: "¥1,240,000", change: "+8%", up: true, icon: TrendingUp, color: "#16a34a" },
+    { label: "未対応アラート", value: "3", change: "-1", up: false, icon: AlertCircle, color: "#dc2626" },
   ],
   matches: [
     { from: "東京", to: "大阪", date: "2026/04/12", status: "approved", statusLabel: "運行中", amount: "¥85,000" },
@@ -20,19 +21,19 @@ export const dashboardDataCarrier: DashboardData = {
     { dotColor: "red", text: "M-021 東京→大阪 アラート発生", time: "3時間前" },
   ],
   quickActions: [
-    { icon: "➕", label: "配車計画作成" },
-    { icon: "🔍", label: "マッチング検索" },
-    { icon: "📋", label: "レポート確認" },
-    { icon: "💬", label: "チャット" },
+    { icon: Plus, label: "配車計画作成" },
+    { icon: Search, label: "マッチング検索" },
+    { icon: ClipboardList, label: "レポート確認" },
+    { icon: MessageSquare, label: "チャット" },
   ],
 };
 
 export const dashboardDataShipper: DashboardData = {
   stats: [
-    { label: "依頼中の案件", value: "5", change: "+2", up: true, icon: "📦", color: "#e85d26" },
-    { label: "今月の依頼数", value: "12", change: "+3", up: true, icon: "📋", color: "#0ea5e9" },
-    { label: "今月の支払い", value: "¥380,000", change: "+5%", up: true, icon: "💴", color: "#16a34a" },
-    { label: "未対応見積り", value: "2", change: "+1", up: false, icon: "⚠️", color: "#dc2626" },
+    { label: "依頼中の案件", value: "5", change: "+2", up: true, icon: Package, color: "#e85d26" },
+    { label: "今月の依頼数", value: "12", change: "+3", up: true, icon: ClipboardList, color: "#0ea5e9" },
+    { label: "今月の支払い", value: "¥380,000", change: "+5%", up: true, icon: CreditCard, color: "#16a34a" },
+    { label: "未対応見積り", value: "2", change: "+1", up: false, icon: AlertCircle, color: "#dc2626" },
   ],
   matches: [
     { from: "東京", to: "大阪", date: "2026/04/12", status: "approved", statusLabel: "運行中", amount: "¥85,000" },
@@ -47,10 +48,10 @@ export const dashboardDataShipper: DashboardData = {
     { dotColor: "red", text: "東京→札幌 見積り待ち", time: "3日前" },
   ],
   quickActions: [
-    { icon: "➕", label: "荷物依頼" },
-    { icon: "🔍", label: "運送会社検索" },
-    { icon: "📋", label: "依頼履歴" },
-    { icon: "💬", label: "チャット" },
+    { icon: Plus, label: "荷物依頼" },
+    { icon: Search, label: "運送会社検索" },
+    { icon: ClipboardList, label: "依頼履歴" },
+    { icon: MessageSquare, label: "チャット" },
   ],
 };
 

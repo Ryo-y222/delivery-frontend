@@ -42,9 +42,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const register = async (registerData: RegisterData) => {
     try {
-      await apiClient.post("/auth/register", registerData);
-      const me = await apiClient.get<{ user: User }>("/users/me");
-      setUser(me.user);
+      const data = await apiClient.post<{user: User}>("/auth/register", registerData);
+      setUser(data.user);
       toast.success("アカウントを作成しました。ようこそ！");
     } catch (error) {
       toast.error("登録に失敗しました。入力内容を確認してください");

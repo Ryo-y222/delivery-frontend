@@ -3,17 +3,17 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { registerSchema, type RegisterInput } from "../schema";
 import { FormField } from "../../../components/molecules/FormField";
 import styles from "./AuthPage.module.css";
-import { useRegister } from "../hooks/useRegister";
-import { useAppStore } from "../../../stores/appStore";
+import { useAuth } from "../../../contexts/useAuth";
+import { useNavigate } from "react-router-dom";
 
 interface Props {
   onSuccess: () => void;
 }
 
 export function RegisterForm({ onSuccess }: Props) {
-  const { setTab } = useAppStore();
 
-  const { register: registerAPI } = useRegister();
+  const { register: registerAuth } = useAuth();
+  const navigate = useNavigate();
 
   const {
     register: registerField,
@@ -30,7 +30,7 @@ export function RegisterForm({ onSuccess }: Props) {
 
   async function onRegister(data: RegisterInput) {
     try {
-        await registerAPI ({
+        await registerAuth ({
             email: data.email,
             password: data.password,
             name: data.name,
@@ -38,7 +38,8 @@ export function RegisterForm({ onSuccess }: Props) {
             company: data.company,
         });
         onSuccess();
-        setTab("login");
+        navigate("/");
+
     } catch (e) {
         registerSetError("root", {
             message: e instanceof Error ? e.message : "エラーが発生しました"
@@ -79,13 +80,13 @@ export function RegisterForm({ onSuccess }: Props) {
         error={registerErrors.name?.message}
         {...registerField("name")}
        />
-      <FormField
+      {/* <FormField
         label="会社名"
         type="text"
         placeholder="株式会社○○"
         error={registerErrors.company?.message}
         {...registerField("company")}
-       />
+       /> */}
       <FormField
         label="メールアドレス"
         type="email"

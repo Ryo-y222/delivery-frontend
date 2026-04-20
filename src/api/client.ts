@@ -1,57 +1,51 @@
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080'
+import { logger } from "../lib/logger";
 
-// interface ApiError {
-//   message: string;
-//   status: number;
-// }
+const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8080/api/v1";
 
-const apiClient = {
-  async get<T>(path: string): Promise<T> {
-    const response = await fetch(`${API_URL}${path}`,{
-      credentials: 'include',
-    })
-    if (!response.ok) {
-      throw new Error(`HTTP Error: ${response.status} ${response.statusText}`)
+async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
+  const response = await fetch(`${API_URL}${path}`, {
+    ...options,
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+      "X-Requested-With": "XMLHttpRequest",
+      ...options.headers,
+    },
+  });
+
+  if (!response.ok) {
+
+    if (response.status === 401) {
+    window.dispatchEvent(new Event("auth:unauthorized"));
+  }
+    
+    let message = "予期しないエラーが発生しました";
+    try {
+      const data = await response.json();
+      message = data.error ?? `サーバーエラー (${response.status})`;
+    } catch {
+      message = `サーバーエラー (${response.status})`;
+      logger.error("APIエラー:", response.status, response.url);
     }
-    return response.json() as Promise<T>
-  },
+    throw new Error(message);
+  }
 
-  async post<T>(path: string, body: unknown): Promise<T> {
-    const response = await fetch(`${API_URL}${path}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
-      credentials: 'include',
-    })
-    if (!response.ok) {
-      throw new Error(`HTTP Error: ${response.status} ${response.statusText}`)
-    }
-    return response.json() as Promise<T>
-  },
-
-  async put<T>(path: string, body: unknown): Promise<T> {
-    const response = await fetch(`${API_URL}${path}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
-      credentials: 'include',
-    })
-    if (!response.ok) {
-      throw new Error(`HTTP Error: ${response.status} ${response.statusText}`)
-    }
-    return response.json() as Promise<T>
-  },
-
-  async delete<T>(path: string): Promise<T> {
-    const response = await fetch(`${API_URL}${path}`, {
-      method: 'DELETE',
-      credentials: 'include',
-    })
-    if (!response.ok) {
-      throw new Error(`HTTP Error: ${response.status} ${response.statusText}`)
-    }
-    return response.json() as Promise<T>
-  },
+  return response.json() as Promise<T>;
 }
 
-export default apiClient
+const apiClient = {
+  get<T>(path: string): Promise<T> {
+    return request<T>(path);
+  },
+  post<T>(path: string, body: unknown): Promise<T> {
+    return request<T>(path, { method: "POST", body: JSON.stringify(body) });
+  },
+  put<T>(path: string, body: unknown): Promise<T> {
+    return request<T>(path, { method: "PUT", body: JSON.stringify(body) });
+  },
+  delete<T>(path: string): Promise<T> {
+    return request<T>(path, { method: "DELETE" });
+  },
+};
+
+export default apiClient;

@@ -3,14 +3,16 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { loginSchema, type LoginInput } from "../schema";
 import { FormField } from "../../../components/molecules/FormField";
 import styles from "./AuthPage.module.css";
-import { useLogin } from "../hooks/useLogin";
+import { useAuth } from "../../../contexts/useAuth";
+import { useNavigate } from "react-router-dom";
 
 interface Props {
     onSuccess: () => void;
 }
 
 export function LoginForm( { onSuccess } :Props ) {
-  const { login } = useLogin();
+  const { login } = useAuth();
+  const navigate = useNavigate();
 
   const {
     register: loginField,
@@ -25,6 +27,7 @@ export function LoginForm( { onSuccess } :Props ) {
     try {
         await login(data.email, data.password);
         onSuccess();
+        navigate("/");
     } catch (e) {
         loginSetError("root", {
             message: e instanceof Error ? e.message : "エラーが発生しました",

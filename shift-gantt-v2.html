@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>シフト管理ガントチャート (6:00-30:00)</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #1a1a2e;
+      color: #eee;
+      padding: 20px;
+    }
+
+    h1 {
+      margin-bottom: 10px;
+      font-size: 1.4rem;
+      color: #fff;
+    }
+
+    .date-display {
+      margin-bottom: 15px;
+      color: #888;
+      font-size: 0.9rem;
+    }
+
+    .gantt-container {
+      display: flex;
+      border: 1px solid #333;
+      border-radius: 8px;
+      overflow: hidden;
+      background: #16213e;
+    }
+
+    /* 左側：行ヘッダー（従業員名） */
+    .row-headers {
+      flex-shrink: 0;
+      width: 120px;
+      background: #1a1a2e;
+      border-right: 2px solid #333;
+      z-index: 10;
+    }
+
+    .row-header-spacer {
+      height: 50px;
+      border-bottom: 1px solid #333;
+      background: #1a1a2e;
+    }
+
+    .row-header {
+      height: 50px;
+      padding: 0 12px;
+      display: flex;
+      align-items: center;
+      border-bottom: 1px solid #2a2a4a;
+      font-size: 0.85rem;
+      font-weight: 500;
+    }
+
+    .row-header:nth-child(odd) {
+      background: rgba(255,255,255,0.02);
+    }
+
+    /* 右側：スクロール可能なチャート領域 */
+    .chart-scroll-area {
+      flex: 1;
+      overflow-x: auto;
+      overflow-y: hidden;
+    }
+
+    .chart-inner {
+      position: relative;
+      width: 1440px;
+    }
+
+    /* 上部：時間軸ヘッダー */
+    .time-header {
+      height: 50px;
+      position: sticky;
+      top: 0;
+      background: #1a1a2e;
+      border-bottom: 2px solid #333;
+      display: flex;
+      z-index: 5;
+    }
+
+    .time-label {
+      width: 60px;
+      flex-shrink: 0;
+      text-align: center;
+      font-size: 0.75rem;
+      color: #888;
+      border-left: 1px solid #333;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .time-label:first-child {
+      border-left: none;
+    }
+
+    .time-label.highlight {
+      background: rgba(255, 200, 50, 0.1);
+      color: #ffc832;
+    }
+
+    /* グリッド背景（5分ごとの線） */
+    .chart-body {
+      position: relative;
+      background: 
+        repeating-linear-gradient(
+          to right,
+          transparent 0px,
+          transparent 4px,
+          rgba(255,255,255,0.03) 4px,
+          rgba(255,255,255,0.03) 5px
+        ),
+        repeating-linear-gradient(
+          to right,
+          transparent 0px,
+          transparent 59px,
+          rgba(255,255,255,0.15) 59px,
+          rgba(255,255,255,0.15) 60px
+        );
+    }
+
+    /* 各行 */
+    .chart-row {
+      height: 50px;
+      position: relative;
+      border-bottom: 1px solid #2a2a4a;
+    }
+
+    .chart-row:nth-child(odd) {
+      background: rgba(255,255,255,0.02);
+    }
+
+    /* タスクバー */
+    .task-bar {
+      position: absolute;
+      height: 34px;
+      top: 8px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: #fff;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+      transition: box-shadow 0.15s;
+      user-select: none;
+      min-width: 30px;
+      overflow: hidden;
+    }
+
+    .task-bar:hover {
+      box-shadow: 0 4px 16px rgba(102, 126, 234, 0.5);
+    }
+
+    .task-bar.dragging {
+      box-shadow: 0 8px 24px rgba(102, 126, 234, 0.6);
+      z-index: 100;
+    }
+
+    .task-bar.color-1 { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+    .task-bar.color-2 { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
+    .task-bar.color-3 { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); }
+    .task-bar.color-4 { background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); }
+    .task-bar.color-5 { background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%); color: #333; }
+
+    /* タスクバー内部構造 */
+    .task-content {
+      flex: 1;
+      text-align: center;
+      cursor: grab;
+      padding: 0 8px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .task-content:active {
+      cursor: grabbing;
+    }
+
+    /* リサイズハンドル */
+    .resize-handle {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 12px;
+      cursor: ew-resize;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: opacity 0.15s;
+    }
+
+    .task-bar:hover .resize-handle {
+      opacity: 1;
+    }
+
+    .resize-handle-left {
+      left: 0;
+      border-radius: 6px 0 0 6px;
+      background: linear-gradient(to right, rgba(255,255,255,0.3), transparent);
+    }
+
+    .resize-handle-right {
+      right: 0;
+      border-radius: 0 6px 6px 0;
+      background: linear-gradient(to left, rgba(255,255,255,0.3), transparent);
+    }
+
+    .resize-handle::after {
+      content: '';
+      width: 3px;
+      height: 16px;
+      background: rgba(255,255,255,0.6);
+      border-radius: 2px;
+    }
+
+    .resize-handle:hover::after {
+      background: rgba(255,255,255,0.9);
+    }
+
+    /* 現在時刻の線 */
+    .now-line {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      background: #ff4757;
+      z-index: 50;
+      pointer-events: none;
+    }
+
+    .now-line::before {
+      content: '現在';
+      position: absolute;
+      top: -18px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 0.65rem;
+      color: #ff4757;
+      white-space: nowrap;
+    }
+
+    /* ツールチップ */
+    .tooltip {
+      position: fixed;
+      background: rgba(0,0,0,0.85);
+      color: #fff;
+      padding: 6px 10px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      pointer-events: none;
+      z-index: 1000;
+      white-space: nowrap;
+      display: none;
+    }
+
+    .tooltip.visible {
+      display: block;
+    }
+
+    /* 凡例 */
+    .legend {
+      margin-top: 15px;
+      font-size: 0.8rem;
+      color: #888;
+      line-height: 1.6;
+    }
+
+    .legend span {
+      display: inline-block;
+      margin-right: 20px;
+    }
+  </style>
+</head>
+<body>
+  <h1>📅 シフト管理ガントチャート</h1>
+  <div class="date-display" id="dateDisplay">2024年1月15日（月）</div>
+  
+  <div class="gantt-container">
+    <div class="row-headers">
+      <div class="row-header-spacer"></div>
+      <div id="rowHeaders"></div>
+    </div>
+    <div class="chart-scroll-area" id="scrollArea">
+      <div class="chart-inner">
+        <div class="time-header" id="timeHeader"></div>
+        <div class="chart-body" id="chartBody"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="legend">
+    <span>🖱️ 中央ドラッグ：全体移動</span>
+    <span>↔️ 左端ドラッグ：開始時間変更</span>
+    <span>↔️ 右端ドラッグ：終了時間変更</span>
+  </div>
+
+  <div class="tooltip" id="tooltip"></div>
+
+<script>
+// ========================================
+// 設定
+// ========================================
+const CONFIG = {
+  startHour: 6,
+  endHour: 30,
+  pixelsPerHour: 60,
+  pixelsPerMinute: 1,
+  rowHeight: 50,
+  minTaskDuration: 30, // 最小30分
+  baseDate: new Date('2024-01-15')
+};
+
+const TOTAL_HOURS = CONFIG.endHour - CONFIG.startHour;
+const CHART_WIDTH = TOTAL_HOURS * CONFIG.pixelsPerHour;
+
+// ========================================
+// サンプルデータ
+// ========================================
+const employees = [
+  { id: 'emp1', name: '田中 太郎' },
+  { id: 'emp2', name: '佐藤 花子' },
+  { id: 'emp3', name: '鈴木 一郎' },
+  { id: 'emp4', name: '高橋 美咲' },
+  { id: 'emp5', name: '伊藤 健太' },
+  { id: 'emp6', name: '渡辺 愛' },
+  { id: 'emp7', name: '山本 翔' },
+  { id: 'emp8', name: '中村 さくら' },
+  { id: 'emp9', name: '小林 大輔' },
+  { id: 'emp10', name: '加藤 真央' },
+];
+
+let tasks = [
+  { id: 't1', employeeId: 'emp1', startHour: 6, startMin: 0, endHour: 15, endMin: 0, label: '早番', colorClass: 'color-1' },
+  { id: 't2', employeeId: 'emp2', startHour: 9, startMin: 30, endHour: 18, endMin: 30, label: '日勤', colorClass: 'color-2' },
+  { id: 't3', employeeId: 'emp3', startHour: 12, startMin: 0, endHour: 21, endMin: 0, label: '遅番', colorClass: 'color-3' },
+  { id: 't4', employeeId: 'emp4', startHour: 17, startMin: 0, endHour: 26, endMin: 0, label: '夜勤A', colorClass: 'color-4' },
+  { id: 't5', employeeId: 'emp5', startHour: 22, startMin: 0, endHour: 30, endMin: 0, label: '夜勤B', colorClass: 'color-5' },
+  { id: 't6', employeeId: 'emp6', startHour: 8, startMin: 0, endHour: 17, endMin: 0, label: '日勤', colorClass: 'color-2' },
+  { id: 't7', employeeId: 'emp7', startHour: 10, startMin: 30, endHour: 19, endMin: 30, label: '中番', colorClass: 'color-3' },
+  { id: 't8', employeeId: 'emp8', startHour: 14, startMin: 0, endHour: 23, endMin: 0, label: '遅番', colorClass: 'color-1' },
+  { id: 't9', employeeId: 'emp9', startHour: 20, startMin: 0, endHour: 29, endMin: 0, label: '夜勤', colorClass: 'color-4' },
+  { id: 't10', employeeId: 'emp10', startHour: 6, startMin: 30, endHour: 14, endMin: 30, label: '早番', colorClass: 'color-5' },
+];
+
+// ========================================
+// ユーティリティ関数
+// ========================================
+
+function formatShiftTime(hour, min = 0) {
+  const h = String(hour).padStart(2, '0');
+  const m = String(min).padStart(2, '0');
+  return `${h}:${m}`;
+}
+
+function shiftTimeToPixel(hour, min = 0) {
+  const totalMinutes = (hour - CONFIG.startHour) * 60 + min;
+  return totalMinutes * CONFIG.pixelsPerMinute;
+}
+
+function pixelToShiftTime(px) {
+  const totalMinutes = Math.round(px / CONFIG.pixelsPerMinute);
+  const snappedMinutes = Math.round(totalMinutes / 5) * 5;
+  const hour = CONFIG.startHour + Math.floor(snappedMinutes / 60);
+  const min = snappedMinutes % 60;
+  return { 
+    hour: Math.max(CONFIG.startHour, Math.min(CONFIG.endHour, hour)), 
+    min: min >= 0 ? min : 0 
+  };
+}
+
+function timeToMinutes(hour, min) {
+  return hour * 60 + min;
+}
+
+function minutesToTime(totalMin) {
+  return {
+    hour: Math.floor(totalMin / 60),
+    min: totalMin % 60
+  };
+}
+
+// ========================================
+// ツールチップ
+// ========================================
+const tooltip = document.getElementById('tooltip');
+
+function showTooltip(text, x, y) {
+  tooltip.textContent = text;
+  tooltip.style.left = `${x + 15}px`;
+  tooltip.style.top = `${y + 15}px`;
+  tooltip.classList.add('visible');
+}
+
+function hideTooltip() {
+  tooltip.classList.remove('visible');
+}
+
+// ========================================
+// 描画関数
+// ========================================
+
+function renderTimeHeader() {
+  const container = document.getElementById('timeHeader');
+  container.innerHTML = '';
+  
+  for (let h = CONFIG.startHour; h < CONFIG.endHour; h++) {
+    const label = document.createElement('div');
+    label.className = 'time-label';
+    if (h >= 24) {
+      label.classList.add('highlight');
+    }
+    label.textContent = formatShiftTime(h);
+    container.appendChild(label);
+  }
+}
+
+function renderRowHeaders() {
+  const container = document.getElementById('rowHeaders');
+  container.innerHTML = '';
+  
+  employees.forEach(emp => {
+    const row = document.createElement('div');
+    row.className = 'row-header';
+    row.textContent = emp.name;
+    container.appendChild(row);
+  });
+}
+
+function renderChartBody() {
+  const container = document.getElementById('chartBody');
+  container.innerHTML = '';
+  
+  employees.forEach((emp, index) => {
+    const row = document.createElement('div');
+    row.className = 'chart-row';
+    row.dataset.employeeId = emp.id;
+    row.dataset.rowIndex = index;
+    container.appendChild(row);
+  });
+  
+  renderTasks();
+  renderNowLine();
+}
+
+function renderTasks() {
+  document.querySelectorAll('.task-bar').forEach(el => el.remove());
+  
+  tasks.forEach(task => {
+    const row = document.querySelector(`.chart-row[data-employee-id="${task.employeeId}"]`);
+    if (!row) return;
+    
+    const bar = document.createElement('div');
+    bar.className = `task-bar ${task.colorClass || ''}`;
+    bar.dataset.taskId = task.id;
+    
+    const left = shiftTimeToPixel(task.startHour, task.startMin);
+    const width = shiftTimeToPixel(task.endHour, task.endMin) - left;
+    
+    bar.style.left = `${left}px`;
+    bar.style.width = `${Math.max(width, 30)}px`;
+    
+    // 左リサイズハンドル
+    const leftHandle = document.createElement('div');
+    leftHandle.className = 'resize-handle resize-handle-left';
+    leftHandle.addEventListener('mousedown', (e) => onResizeStart(e, task, 'left'));
+    
+    // 中央コンテンツ（全体移動用）
+    const content = document.createElement('div');
+    content.className = 'task-content';
+    const timeText = `${formatShiftTime(task.startHour, task.startMin)}-${formatShiftTime(task.endHour, task.endMin)}`;
+    content.textContent = `${task.label} ${timeText}`;
+    content.addEventListener('mousedown', (e) => onMoveStart(e, task));
+    
+    // 右リサイズハンドル
+    const rightHandle = document.createElement('div');
+    rightHandle.className = 'resize-handle resize-handle-right';
+    rightHandle.addEventListener('mousedown', (e) => onResizeStart(e, task, 'right'));
+    
+    bar.appendChild(leftHandle);
+    bar.appendChild(content);
+    bar.appendChild(rightHandle);
+    
+    bar.title = `${task.label}\n${timeText}`;
+    
+    row.appendChild(bar);
+  });
+}
+
+function updateTaskBar(task) {
+  const bar = document.querySelector(`.task-bar[data-task-id="${task.id}"]`);
+  if (!bar) return;
+  
+  const left = shiftTimeToPixel(task.startHour, task.startMin);
+  const width = shiftTimeToPixel(task.endHour, task.endMin) - left;
+  
+  bar.style.left = `${left}px`;
+  bar.style.width = `${Math.max(width, 30)}px`;
+  
+  const content = bar.querySelector('.task-content');
+  const timeText = `${formatShiftTime(task.startHour, task.startMin)}-${formatShiftTime(task.endHour, task.endMin)}`;
+  content.textContent = `${task.label} ${timeText}`;
+  bar.title = `${task.label}\n${timeText}`;
+}
+
+function renderNowLine() {
+  document.querySelectorAll('.now-line').forEach(el => el.remove());
+  
+  const now = new Date();
+  let currentHour = now.getHours();
+  const currentMin = now.getMinutes();
+  
+  if (currentHour < CONFIG.startHour) {
+    currentHour += 24;
+  }
+  
+  if (currentHour >= CONFIG.startHour && currentHour < CONFIG.endHour) {
+    const px = shiftTimeToPixel(currentHour, currentMin);
+    const line = document.createElement('div');
+    line.className = 'now-line';
+    line.style.left = `${px}px`;
+    document.getElementById('chartBody').appendChild(line);
+  }
+}
+
+// ========================================
+// ドラッグ処理：全体移動
+// ========================================
+
+function onMoveStart(e, task) {
+  e.preventDefault();
+  e.stopPropagation();
+  
+  const bar = document.querySelector(`.task-bar[data-task-id="${task.id}"]`);
+  const scrollArea = document.getElementById('scrollArea');
+  
+  const startX = e.clientX;
+  const initialLeft = shiftTimeToPixel(task.startHour, task.startMin);
+  const duration = timeToMinutes(task.endHour, task.endMin) - timeToMinutes(task.startHour, task.startMin);
+  
+  // 元の値を保存
+  const originalStart = { hour: task.startHour, min: task.startMin };
+  const originalEnd = { hour: task.endHour, min: task.endMin };
+  
+  bar.classList.add('dragging');
+  
+  let lastMoveTime = 0;
+  const throttleMs = 16;
+  
+  function onMouseMove(e) {
+    const now = Date.now();
+    if (now - lastMoveTime < throttleMs) return;
+    lastMoveTime = now;
+    
+    const deltaX = e.clientX - startX;
+    let newLeft = initialLeft + deltaX;
+    
+    const maxLeft = CHART_WIDTH - (duration * CONFIG.pixelsPerMinute);
+    newLeft = Math.max(0, Math.min(maxLeft, newLeft));
+    
+    const snappedLeft = Math.round(newLeft / 5) * 5;
+    const newStart = pixelToShiftTime(snappedLeft);
+    const newEndMin = timeToMinutes(newStart.hour, newStart.min) + duration;
+    const newEnd = minutesToTime(newEndMin);
+    
+    // 一時的に更新
+    task.startHour = newStart.hour;
+    task.startMin = newStart.min;
+    task.endHour = newEnd.hour;
+    task.endMin = newEnd.min;
+    
+    updateTaskBar(task);
+    showTooltip(`${formatShiftTime(newStart.hour, newStart.min)} 〜 ${formatShiftTime(newEnd.hour, newEnd.min)}`, e.clientX, e.clientY);
+  }
+  
+  function onMouseUp(e) {
+    window.removeEventListener('mousemove', onMouseMove);
+    window.removeEventListener('mouseup', onMouseUp);
+    
+    bar.classList.remove('dragging');
+    hideTooltip();
+    
+    // 変更があった場合のみログ出力
+    if (task.startHour !== originalStart.hour || task.startMin !== originalStart.min) {
+      const emp = employees.find(e => e.id === task.employeeId);
+      console.log(`📌 タスク移動完了: ${task.label}`);
+      console.log(`   従業員: ${emp?.name}`);
+      console.log(`   変更前: ${formatShiftTime(originalStart.hour, originalStart.min)} 〜 ${formatShiftTime(originalEnd.hour, originalEnd.min)}`);
+      console.log(`   変更後: ${formatShiftTime(task.startHour, task.startMin)} 〜 ${formatShiftTime(task.endHour, task.endMin)}`);
+      console.log('---');
+    }
+  }
+  
+  window.addEventListener('mousemove', onMouseMove);
+  window.addEventListener('mouseup', onMouseUp);
+}
+
+// ========================================
+// ドラッグ処理：リサイズ（開始/終了時間変更）
+// ========================================
+
+function onResizeStart(e, task, direction) {
+  e.preventDefault();
+  e.stopPropagation();
+  
+  const bar = document.querySelector(`.task-bar[data-task-id="${task.id}"]`);
+  const scrollArea = document.getElementById('scrollArea');
+  
+  const startX = e.clientX;
+  const initialStartPx = shiftTimeToPixel(task.startHour, task.startMin);
+  const initialEndPx = shiftTimeToPixel(task.endHour, task.endMin);
+  
+  // 元の値を保存
+  const originalStart = { hour: task.startHour, min: task.startMin };
+  const originalEnd = { hour: task.endHour, min: task.endMin };
+  
+  bar.classList.add('dragging');
+  
+  let lastMoveTime = 0;
+  const throttleMs = 16;
+  
+  function onMouseMove(e) {
+    const now = Date.now();
+    if (now - lastMoveTime < throttleMs) return;
+    lastMoveTime = now;
+    
+    const deltaX = e.clientX - startX;
+    
+    if (direction === 'left') {
+      // 開始時間を変更
+      let newStartPx = initialStartPx + deltaX;
+      // 最小幅を確保（終了時間 - 最小時間）
+      const maxStartPx = initialEndPx - (CONFIG.minTaskDuration * CONFIG.pixelsPerMinute);
+      newStartPx = Math.max(0, Math.min(maxStartPx, newStartPx));
+      
+      const snappedPx = Math.round(newStartPx / 5) * 5;
+      const newStart = pixelToShiftTime(snappedPx);
+      
+      task.startHour = newStart.hour;
+      task.startMin = newStart.min;
+      
+      showTooltip(`開始: ${formatShiftTime(newStart.hour, newStart.min)}`, e.clientX, e.clientY);
+      
+    } else {
+      // 終了時間を変更
+      let newEndPx = initialEndPx + deltaX;
+      // 最小幅を確保（開始時間 + 最小時間）
+      const minEndPx = initialStartPx + (CONFIG.minTaskDuration * CONFIG.pixelsPerMinute);
+      newEndPx = Math.max(minEndPx, Math.min(CHART_WIDTH, newEndPx));
+      
+      const snappedPx = Math.round(newEndPx / 5) * 5;
+      const newEnd = pixelToShiftTime(snappedPx);
+      
+      task.endHour = newEnd.hour;
+      task.endMin = newEnd.min;
+      
+      showTooltip(`終了: ${formatShiftTime(newEnd.hour, newEnd.min)}`, e.clientX, e.clientY);
+    }
+    
+    updateTaskBar(task);
+  }
+  
+  function onMouseUp(e) {
+    window.removeEventListener('mousemove', onMouseMove);
+    window.removeEventListener('mouseup', onMouseUp);
+    
+    bar.classList.remove('dragging');
+    hideTooltip();
+    
+    // 変更があった場合のみログ出力
+    const changed = (direction === 'left' && (task.startHour !== originalStart.hour || task.startMin !== originalStart.min)) ||
+                    (direction === 'right' && (task.endHour !== originalEnd.hour || task.endMin !== originalEnd.min));
+    
+    if (changed) {
+      const emp = employees.find(e => e.id === task.employeeId);
+      const actionText = direction === 'left' ? '開始時間変更' : '終了時間変更';
+      console.log(`⏱️ ${actionText}: ${task.label}`);
+      console.log(`   従業員: ${emp?.name}`);
+      console.log(`   変更前: ${formatShiftTime(originalStart.hour, originalStart.min)} 〜 ${formatShiftTime(originalEnd.hour, originalEnd.min)}`);
+      console.log(`   変更後: ${formatShiftTime(task.startHour, task.startMin)} 〜 ${formatShiftTime(task.endHour, task.endMin)}`);
+      console.log('---');
+    }
+  }
+  
+  window.addEventListener('mousemove', onMouseMove);
+  window.addEventListener('mouseup', onMouseUp);
+}
+
+// ========================================
+// 初期化
+// ========================================
+
+function init() {
+  const dateDisplay = document.getElementById('dateDisplay');
+  const options = { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' };
+  dateDisplay.textContent = CONFIG.baseDate.toLocaleDateString('ja-JP', options);
+  
+  renderTimeHeader();
+  renderRowHeaders();
+  renderChartBody();
+  
+  setInterval(renderNowLine, 60000);
+  
+  const scrollArea = document.getElementById('scrollArea');
+  const now = new Date();
+  let currentHour = now.getHours();
+  if (currentHour < CONFIG.startHour) currentHour += 24;
+  
+  if (currentHour >= CONFIG.startHour && currentHour < CONFIG.endHour) {
+    const targetPx = shiftTimeToPixel(currentHour) - scrollArea.clientWidth / 2;
+    scrollArea.scrollLeft = Math.max(0, targetPx);
+  }
+  
+  console.log('🚀 シフト管理ガントチャート初期化完了');
+  console.log(`   時間範囲: ${formatShiftTime(CONFIG.startHour)} 〜 ${formatShiftTime(CONFIG.endHour)}`);
+  console.log(`   従業員数: ${employees.length}名`);
+  console.log(`   タスク数: ${tasks.length}件`);
+  console.log('');
+  console.log('📝 操作方法:');
+  console.log('   - 中央ドラッグ: 全体移動');
+  console.log('   - 左端ドラッグ: 開始時間変更');
+  console.log('   - 右端ドラッグ: 終了時間変更');
+  console.log('---');
+}
+
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>

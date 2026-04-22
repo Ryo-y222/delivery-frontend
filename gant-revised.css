@@ -1,0 +1,274 @@
+/* 配車ガント — v2 の UX (リサイズ / 現在時刻 / ツールチップ / 5分グリッド) を反映 */
+
+.dispatch-page {
+  padding: 20px;
+  color: #e5e7eb;
+  background: #0f172a;
+  min-height: 100vh;
+}
+
+.dispatch-title {
+  font-size: 1.25rem;
+  margin-bottom: 12px;
+  color: #f8fafc;
+}
+
+.dispatch-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 12px;
+  font-size: 0.85rem;
+}
+
+.dispatch-toolbar select {
+  margin-left: 8px;
+}
+
+.dispatch-hint {
+  color: #94a3b8;
+  font-size: 0.75rem;
+}
+
+.dispatch-board {
+  border: 1px solid #1e293b;
+  border-radius: 8px;
+  overflow: auto;
+  background: #111827;
+}
+
+.dispatch-board-inner {
+  position: relative;
+}
+
+/* ───── ヘッダー ───── */
+.dispatch-header {
+  display: flex;
+  position: sticky;
+  top: 0;
+  background: #111827;
+  border-bottom: 1px solid #1e293b;
+  z-index: 6;
+}
+
+.dispatch-header-left {
+  flex-shrink: 0;
+  padding: 0 12px;
+  display: flex;
+  align-items: center;
+  font-weight: 600;
+  font-size: 0.85rem;
+  background: #0f172a;
+  border-right: 1px solid #1e293b;
+}
+
+.dispatch-header-right {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.dispatch-hour-label {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  padding-left: 4px;
+  font-size: 0.7rem;
+  color: #94a3b8;
+}
+
+/* ───── 行 ───── */
+.dispatch-row {
+  display: flex;
+  border-bottom: 1px solid #1e293b;
+}
+
+.dispatch-row:nth-child(even) .dispatch-row-right {
+  background-color: rgba(255, 255, 255, 0.015);
+}
+
+.dispatch-row-left {
+  flex-shrink: 0;
+  padding: 0 12px;
+  display: flex;
+  align-items: center;
+  font-size: 0.85rem;
+  background: #0f172a;
+  border-right: 1px solid #1e293b;
+  position: sticky;
+  left: 0;
+  z-index: 4;
+}
+
+.dispatch-row-right {
+  position: relative;
+  flex-shrink: 0;
+  /* 5分ごとの細線 (10px = 5min × 2px/min) + 1時間ごとの強線 (120px = 60min × 2px/min) */
+  background-image:
+    repeating-linear-gradient(
+      to right,
+      transparent 0 9px,
+      rgba(148, 163, 184, 0.08) 9px 10px
+    ),
+    repeating-linear-gradient(
+      to right,
+      transparent 0 118px,
+      rgba(148, 163, 184, 0.28) 118px 120px
+    );
+}
+
+/* ───── タイムラインオーバーレイ（現在時刻ライン） ───── */
+.dispatch-timeline-overlay {
+  position: absolute;
+  bottom: 0;
+  pointer-events: none;
+  z-index: 5;
+}
+
+.dispatch-now-line {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: #ef4444;
+  box-shadow: 0 0 6px rgba(239, 68, 68, 0.6);
+}
+
+.dispatch-now-label {
+  position: absolute;
+  top: -18px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.65rem;
+  color: #ef4444;
+  white-space: nowrap;
+  font-weight: 600;
+}
+
+/* ───── ジョブバー ───── */
+.dispatch-job {
+  position: absolute;
+  top: 8px;
+  bottom: 8px;
+  display: flex;
+  align-items: stretch;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 6px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  overflow: hidden;
+  min-width: 40px;
+  user-select: none;
+  transition: box-shadow 0.15s;
+}
+
+.dispatch-job:hover {
+  box-shadow: 0 4px 14px rgba(102, 126, 234, 0.45);
+}
+
+.dispatch-job-body {
+  flex: 1;
+  padding: 4px 8px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  cursor: grab;
+  overflow: hidden;
+  color: #fff;
+}
+
+.dispatch-job-body:active {
+  cursor: grabbing;
+}
+
+.dispatch-job-title {
+  font-size: 0.8rem;
+  font-weight: 600;
+  line-height: 1.2;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+
+.dispatch-job-time {
+  font-size: 0.7rem;
+  opacity: 0.85;
+  line-height: 1.2;
+  margin-top: 2px;
+}
+
+/* ───── リサイズハンドル ───── */
+.dispatch-job-resize {
+  all: unset;
+  width: 8px;
+  flex-shrink: 0;
+  cursor: ew-resize;
+  background: rgba(255, 255, 255, 0.15);
+  opacity: 0;
+  transition: opacity 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dispatch-job:hover .dispatch-job-resize {
+  opacity: 1;
+}
+
+.dispatch-job-resize::after {
+  content: "";
+  width: 2px;
+  height: 50%;
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 1px;
+}
+
+.dispatch-job-resize-left {
+  background: linear-gradient(
+    to right,
+    rgba(255, 255, 255, 0.25),
+    transparent
+  );
+}
+
+.dispatch-job-resize-right {
+  background: linear-gradient(
+    to left,
+    rgba(255, 255, 255, 0.25),
+    transparent
+  );
+}
+
+/* ───── ドロッププレビュー ───── */
+.dispatch-drop-preview-bar {
+  position: absolute;
+  top: 8px;
+  bottom: 8px;
+  background: rgba(99, 102, 241, 0.25);
+  border: 1.5px dashed rgba(165, 180, 252, 0.9);
+  border-radius: 6px;
+  pointer-events: none;
+}
+
+.dispatch-drop-preview-label {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 0.7rem;
+  color: #e0e7ff;
+  white-space: nowrap;
+}
+
+/* ───── ツールチップ ───── */
+.dispatch-tooltip {
+  position: fixed;
+  background: rgba(15, 23, 42, 0.95);
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  color: #f1f5f9;
+  padding: 6px 10px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  pointer-events: none;
+  z-index: 1000;
+  white-space: nowrap;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}

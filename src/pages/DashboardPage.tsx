@@ -1,5 +1,4 @@
-import { useState } from "react";
-import type { UserRole } from "../mocks/types/common";
+import { useUIStore } from "../stores/uiStore";
 import { dashboardDataCarrier, dashboardDataShipper, chartData } from "../mocks/data/dashboard";
 import { StatCard } from "../features/dashboard/components/StatCard";
 import { RecentMatchesTable } from "../features/dashboard/components/RecentMatchesTable";
@@ -9,8 +8,7 @@ import { QuickActions } from "../features/dashboard/components/QuickActions";
 import styles from "./DashboardPage.module.css";
 
 export function DashboardPage() {
-  // const [currentRole, setCurrentRole] = useState<UserRole>("transport_company");
-  const [currentRole] = useState<UserRole>("transport_company");
+  const { currentRole }= useUIStore(); 
 
   const data = currentRole === "transport_company"
     ? dashboardDataCarrier

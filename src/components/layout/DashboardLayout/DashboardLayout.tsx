@@ -1,8 +1,7 @@
-import { useState } from "react";
 import { Outlet } from "react-router-dom";
 import { Sidebar } from "../Sidebar";
 import { Header } from "../Header";
-import type { UserRole } from "../../../mocks/types/common";
+import { useUIStore } from "../../../stores/uiStore";
 import { useAuth } from "../../../contexts/useAuth";
 import styles from "./DashboardLayout.module.css";
 
@@ -18,9 +17,7 @@ export function DashboardLayout({
   showRoleSwitcher = true,
 }: DashboardLayoutProps) {
   const { user } = useAuth();
-  const [currentRole, setCurrentRole] = useState<UserRole>(
-    user?.role ?? "transport_company"
-  );
+  const { currentRole, setCurrentRole } = useUIStore();
 
   return (
     <div className={styles.shell}>

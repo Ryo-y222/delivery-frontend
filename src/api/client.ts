@@ -6,11 +6,11 @@ let refreshPromise: Promise<boolean> | null = null;
 
 async function doRefresh(): Promise<boolean> {
   try {
-    await fetch(`${API_URL}/auth/refresh`, {
+    const res = await fetch(`${API_URL}/auth/refresh`, {
       method: "POST",
       credentials: "include",
     });
-    return true;
+    return res.ok;
   } catch {
     return false;    
   }

@@ -1,0 +1,85 @@
+.header {
+  height: 64px;
+  background: #ffffff;
+  border-bottom: 1px solid #e0dfd7;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 32px;
+  flex-shrink: 0;
+}
+
+.title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #18181b;
+  margin: 0;
+}
+
+.subtitle {
+  font-size: 13px;
+  color: #a1a09a;
+  margin: 2px 0 0;
+}
+
+.right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.roleSwitcher {
+  display: flex;
+  background: #f1f5f9;
+  border-radius: 8px;
+  padding: 4px;
+  gap: 4px;
+}
+
+.roleBtn {
+  padding: 6px 14px;
+  border-radius: 6px;
+  border: none;
+  background: transparent;
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.roleActive {
+  background: #ffffff;
+  color: #18181b;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+}
+
+.iconBtn {
+  position: relative;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  border: 1px solid #e0dfd7;
+  background: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #52525b;
+  transition: all 0.12s;
+}
+
+.iconBtn:hover {
+  background: #f7f6f2;
+}
+
+.dot {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #dc2626;
+  border: 1.5px solid #ffffff;
+}

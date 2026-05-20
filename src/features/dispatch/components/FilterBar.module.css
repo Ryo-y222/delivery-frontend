@@ -1,0 +1,17 @@
+.filterBar {
+  padding: 8px 16px;
+  display: flex;
+  gap: 16px;
+}
+
+.filterBar select {
+  padding: 6px;
+  border-radius: 6px;
+  border: none;
+}
+
+.filterBar input {
+  padding: 6px;
+  border-radius: 6px;
+  border: none;
+}

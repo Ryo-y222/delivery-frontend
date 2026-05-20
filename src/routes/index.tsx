@@ -1,5 +1,6 @@
 import { createBrowserRouter } from "react-router-dom";
 import { AuthPage } from "../features/auth/components/AuthPage";
+import { DashboardLayout } from "../components/layout/DashboardLayout";
 import { DashboardPage } from "../pages/DashboardPage";
 import { MatchingPage } from "../pages/MatchingPage";
 import { DispatchPage } from "../pages/DispatchPage";
@@ -15,15 +16,20 @@ export const router = createBrowserRouter([
     element: <AuthPage />,
   },
   {
-    // 認証が必要なルート
     element: <ProtectedRoute />,
     children: [
-      { path: "/",        element: <DashboardPage /> },
-      { path: "/matching", element: <MatchingPage /> },
-      { path: "/dispatch", element: <DispatchPage /> },
-      { path: "/chat",     element: <ChatPage /> },
-      { path: "/payment",  element: <PaymentPage /> },
-      { path: "/review",   element: <ReviewPage /> },
+      {
+        element: <DashboardLayout title="ダッシュボード" subtitle={new Date().toLocaleDateString("ja-JP")} />,
+        children: [
+          { path: "/", element: <DashboardPage /> },
+          { path: "/dashboard", element: <DashboardPage /> },
+          { path: "/matching", element: <MatchingPage /> },
+          { path: "/dispatch", element: <DispatchPage /> },
+          { path: "/chat", element: <ChatPage /> },
+          { path: "/payment", element: <PaymentPage /> },
+          { path: "/review", element: <ReviewPage /> },
+        ],
+      },
     ],
   },
   {

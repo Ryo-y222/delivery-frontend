@@ -1,0 +1,79 @@
+.card {
+  background: #fff;
+  border-radius: 12px;
+  border: 0.5px solid var(--color-border-tertiary);
+  max-width: 720px;
+  margin: 0 0 16px;
+  overflow: hidden;
+}
+
+.cardHeader {
+  padding: 10px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 0.5px solid var(--color-border-tertiary);
+  background: #faf9f6;
+}
+
+.headerLeft {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.vehicleBadge {
+  background: #e85d26;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 500;
+  padding: 3px 10px;
+  border-radius: 20px;
+}
+
+.driverName {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--color-text-primary);
+}
+
+.headerRight {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.dateLabel {
+  font-size: 14px;
+  color: var(--color-text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+}
+
+.editBtn {
+  background: none;
+  border: 0.5px solid var(--color-border-secondary);
+  border-radius: 8px;
+  padding: 4px 12px;
+  font-size: 12px;
+  cursor: pointer;
+  color: var(--color-text-secondary);
+  font-family: inherit;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+}
+
+.editBtn:hover {
+  background: var(--color-background-secondary);
+}
+
+.empty {
+  padding: 20px;
+  text-align: center;
+  color: var(--color-text-tertiary);
+  font-size: 13px;
+}

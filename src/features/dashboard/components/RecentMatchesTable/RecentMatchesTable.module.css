@@ -1,0 +1,79 @@
+.card {
+  background: #ffffff;
+  border-radius: 12px;
+  border: 1px solid #e0dfd7;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  overflow: hidden;
+}
+
+.cardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 22px;
+  border-bottom: 1px solid #e0dfd7;
+}
+
+.title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #18181b;
+  margin: 0;
+}
+
+.seeAll {
+  font-size: 12px;
+  color: #e85d26;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: monospace;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.th {
+  font-family: monospace;
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #a1a09a;
+  text-align: left;
+  padding: 12px 22px;
+  font-weight: 400;
+  background: #f7f6f2;
+}
+
+.td {
+  padding: 13px 22px;
+  font-size: 13px;
+  border-top: 1px solid #e0dfd7;
+}
+
+.tr:hover .td {
+  background: #f7f6f2;
+}
+
+.route {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.arrow {
+  color: #a1a09a;
+}
+
+.tdMuted {
+  color: #a1a09a;
+  font-family: monospace;
+  font-size: 12px;
+}
+
+.tdBold {
+  font-weight: 700;
+  font-family: monospace;
+}

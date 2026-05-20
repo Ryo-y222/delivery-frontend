@@ -1,0 +1,45 @@
+.card {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 20px 22px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  border: 1px solid #e0dfd7;
+}
+
+.top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.label {
+  font-size: 13px;
+  color: #a1a09a;
+  font-weight: 500;
+}
+
+.iconBox {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.value {
+  font-size: 28px;
+  font-weight: 800;
+  color: #18181b;
+  letter-spacing: -0.02em;
+  margin-bottom: 8px;
+}
+
+.change {
+  font-size: 12px;
+  font-family: monospace;
+}
+
+.up { color: #16a34a; }
+.down { color: #dc2626; }

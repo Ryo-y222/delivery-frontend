@@ -1,0 +1,98 @@
+.legRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  border-bottom: 0.5px solid var(--color-border-tertiary);
+}
+
+.legRow:last-child {
+  border-bottom: none;
+}
+
+.legNum {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: #faf9f6;
+  border: 0.5px solid #e85d26;
+  color: #993c1d;
+  font-size: 12px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.legInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.legRoute {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--color-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.legTime {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  margin-top: 2px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.legCargo {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  width: 120px;
+  text-align: right;
+  flex-shrink: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.legWeight {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  width: 48px;
+  text-align: right;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.statusBadge {
+  font-size: 12px;
+  padding: 3px 8px;
+  border-radius: 20px;
+  white-space: nowrap;
+  font-weight: 500;
+  flex-shrink: 0;
+}
+
+.sDone {
+  background: #e1f5ee;
+  color: #085041;
+}
+
+.sEmpty {
+  background: #e6f1fb;
+  color: #0c447c;
+}
+
+.sDelivering {
+  background: #faeeda;
+  color: #633806;
+}
+
+.sLoaded {
+  background: #faece7;
+  color: #712b13;
+}

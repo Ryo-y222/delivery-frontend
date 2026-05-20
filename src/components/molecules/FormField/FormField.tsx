@@ -1,4 +1,4 @@
-import { InputHTMLAttributes, ReactNode } from "react";
+import  type { InputHTMLAttributes, ReactNode } from "react";
 import styles from "./FormField.module.css";
 
 interface Props extends InputHTMLAttributes<HTMLInputElement> {

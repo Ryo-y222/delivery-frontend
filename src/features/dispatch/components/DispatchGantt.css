@@ -1,0 +1,228 @@
+.dispatch-page {
+  padding: 24px;
+  font-family: sans-serif;
+}
+
+.dispatch-title {
+  margin-bottom: 12px;
+}
+
+/* ボード全体 */
+.dispatch-board {
+  display: flex;
+  border: 1px solid #ccc;
+  background: white;
+  overflow: hidden;
+}
+
+/* 左固定エリア */
+.dispatch-left-fixed {
+  flex-shrink: 0;
+  border-right: 1px solid #ccc;
+  background: #fafafa;
+  display: flex;
+  flex-direction: column;
+}
+
+.dispatch-header-left {
+  height: 48px;
+  padding: 12px;
+  box-sizing: border-box;
+  font-weight: bold;
+  background: #f7f7f7;
+  border-bottom: 1px solid #ccc;
+  display: flex;
+  align-items: center;
+}
+
+.dispatch-row-left {
+  padding: 12px;
+  box-sizing: border-box;
+  background: #fafafa;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid #eee;
+}
+
+/* 右スクロールエリア */
+.dispatch-right-scroll {
+  overflow-x: auto;
+  flex: 1;
+}
+
+.dispatch-header-right {
+  position: relative;
+  height: 48px;
+  background: #f7f7f7;
+  border-bottom: 1px solid #ccc;
+}
+
+/* 時間線 */
+.dispatch-hour-line {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+}
+
+.dispatch-hour-line.strong {
+  border-left: 1px solid #ddd;
+}
+
+.dispatch-hour-label {
+  position: absolute;
+  top: 14px;
+  font-size: 12px;
+}
+
+/* 行 */
+.dispatch-row-right {
+  position: relative;
+  border-bottom: 1px solid #eee;
+}
+
+.dispatch-row-grid {
+  background-image: repeating-linear-gradient(
+    to right,
+    transparent 0 119px,
+    rgba(148, 163, 184, 0.22) 119px 120px
+  );
+}
+
+/* ジョブバー */
+.dispatch-job {
+  position: absolute;
+  top: 10px;
+  height: 44px;
+  background: #2563eb;
+  border-radius: 4px;
+  box-sizing: border-box;
+  z-index: 2;
+  display: flex;
+  align-items: stretch;
+  overflow: hidden;
+  border: none;
+}
+
+.dispatch-job:hover {
+  background: #1d4ed8;
+  cursor: grab;
+}
+
+.dispatch-job-title {
+  font-size: 12px;
+  font-weight: 500;
+  color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dispatch-job-time {
+  font-size: 10px;
+  margin-top: 2px;
+  color: rgba(255, 255, 255, 0.75);
+  white-space: nowrap;
+}
+
+/* プレビュー */
+.dispatch-drop-preview-bar {
+  position: absolute;
+  top: 8px;
+  height: 48px;
+  border: 2px dotted #2563eb;
+  border-radius: 6px;
+  background: rgba(191, 219, 254, 0.18);
+  box-sizing: border-box;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.dispatch-drop-preview-label {
+  position: absolute;
+  top: -24px;
+  left: 0;
+  font-size: 12px;
+  color: #2563eb;
+  background: white;
+  padding: 2px 6px;
+  border-radius: 999px;
+  border: 1px solid #bfdbfe;
+  white-space: nowrap;
+}
+
+/* モーダル */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+  display: grid;
+  place-items: center;
+  z-index: 1000;
+}
+
+.modal-card {
+  background: white;
+  border-radius: 8px;
+  padding: 16px;
+  width: 320px;
+}
+
+.dispatch-job-body {
+  flex: 1;
+  overflow: hidden;
+  padding: 6px 8px;
+  cursor: grab;
+  min-width: 0;
+}
+
+.dispatch-job-handle {
+  width: 6px;
+  flex-shrink: 0;
+  background: rgba(255, 255, 255, 0.15);
+  border: none;
+  cursor: ew-resize;
+  padding: 0;
+  transition: background 0.15s;
+}
+
+.dispatch-job-handle:hover {
+  background: rgba(255, 255, 255, 0.35);
+}
+
+.dispatch-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.dispatch-btn-add {
+  padding: 8px 16px;
+  background: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.dispatch-btn-add:hover {
+  background: #2563eb;
+}
+
+.dispatch-btn-delete {
+  padding: 8px 16px;
+  background: #ef4444;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.dispatch-btn-delete:hover {
+  background: #dc2626;
+}
